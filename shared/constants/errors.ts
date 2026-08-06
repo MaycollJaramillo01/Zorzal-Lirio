@@ -1,0 +1,46 @@
+export const ERROR_CODES = {
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  UNAUTHENTICATED: 'UNAUTHENTICATED',
+  INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
+  USER_INACTIVE: 'USER_INACTIVE',
+  FORBIDDEN: 'FORBIDDEN',
+  NOT_FOUND: 'NOT_FOUND',
+  CONFLICT: 'CONFLICT',
+  ORDER_VERSION_CONFLICT: 'ORDER_VERSION_CONFLICT',
+  INVALID_TRANSITION: 'INVALID_TRANSITION',
+  ASSIGNEE_REQUIRED: 'ASSIGNEE_REQUIRED',
+  REASON_REQUIRED: 'REASON_REQUIRED',
+  ORDER_ARCHIVED: 'ORDER_ARCHIVED',
+  EMAIL_TAKEN: 'EMAIL_TAKEN',
+  PASSWORD_CHANGE_REQUIRED: 'PASSWORD_CHANGE_REQUIRED',
+  PROTECTED_OWNER: 'PROTECTED_OWNER',
+  RATE_LIMITED: 'RATE_LIMITED',
+  CRON_LOCKED: 'CRON_LOCKED',
+  PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+} as const;
+
+export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
+
+/** Mensajes por defecto en espanol para cada codigo de error. */
+export const ERROR_MESSAGES: Record<ErrorCode, string> = {
+  VALIDATION_ERROR: 'Los datos enviados no son validos.',
+  UNAUTHENTICATED: 'Debes iniciar sesion para continuar.',
+  INVALID_CREDENTIALS: 'Correo o contrasena incorrectos.',
+  USER_INACTIVE: 'Tu usuario esta desactivado. Contacta al administrador.',
+  FORBIDDEN: 'No tienes permisos para realizar esta accion.',
+  NOT_FOUND: 'El recurso solicitado no existe.',
+  CONFLICT: 'La operacion entra en conflicto con el estado actual.',
+  ORDER_VERSION_CONFLICT: 'La orden fue modificada por otro usuario.',
+  INVALID_TRANSITION: 'El movimiento solicitado no esta permitido.',
+  ASSIGNEE_REQUIRED: 'Debes seleccionar un responsable para la nueva etapa.',
+  REASON_REQUIRED: 'Debes escribir una razon para este movimiento.',
+  ORDER_ARCHIVED: 'La orden esta archivada.',
+  EMAIL_TAKEN: 'Ya existe un usuario con ese correo.',
+  PASSWORD_CHANGE_REQUIRED: 'Debes cambiar tu contrasena antes de continuar.',
+  PROTECTED_OWNER: 'El dueno principal no puede modificarse.',
+  RATE_LIMITED: 'Demasiados intentos. Espera un momento e intenta de nuevo.',
+  CRON_LOCKED: 'Ya hay una revision de SLA en curso.',
+  PAYLOAD_TOO_LARGE: 'El contenido enviado es demasiado grande.',
+  INTERNAL_ERROR: 'Ocurrio un error inesperado. Intenta nuevamente.',
+};

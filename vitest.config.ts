@@ -1,0 +1,35 @@
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+
+const sharedRoot = fileURLToPath(new URL('./shared', import.meta.url));
+const clientSrc = fileURLToPath(new URL('./client/src', import.meta.url));
+
+export default defineConfig({
+  test: {
+    projects: [
+      {
+        test: {
+          name: 'server',
+          environment: 'node',
+          include: ['tests/unit/**/*.test.ts', 'tests/api/**/*.test.ts'],
+          setupFiles: ['tests/setup-env.ts'],
+          hookTimeout: 30_000,
+          testTimeout: 30_000,
+        },
+      },
+      {
+        plugins: [react()],
+        resolve: {
+          alias: { '@shared': sharedRoot, '@': clientSrc },
+        },
+        test: {
+          name: 'client',
+          environment: 'jsdom',
+          include: ['tests/client/**/*.test.tsx'],
+          setupFiles: ['tests/client/setup.ts'],
+        },
+      },
+    ],
+  },
+});
