@@ -42,10 +42,25 @@ export function DashboardPage() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        <StatTile label="Ordenes activas" value={data.activeOrders} />
-        <StatTile label="Proximas a vencer" value={data.warningOrders} tone={data.warningOrders > 0 ? 'warning' : 'neutral'} />
-        <StatTile label="Atrasadas" value={data.overdueOrders} tone={data.overdueOrders > 0 ? 'danger' : 'neutral'} />
+      {/* Grid bento: celdas de color solido (ink, dorado) marcan el ritmo entre las celdas blancas. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile
+          label="Ordenes activas"
+          value={data.activeOrders}
+          detail="En produccion ahora mismo"
+          tone="ink"
+          className="sm:col-span-2 lg:col-span-2"
+        />
+        <StatTile
+          label="Proximas a vencer"
+          value={data.warningOrders}
+          tone={data.warningOrders > 0 ? 'warning' : 'neutral'}
+        />
+        <StatTile
+          label="Atrasadas"
+          value={data.overdueOrders}
+          tone={data.overdueOrders > 0 ? 'danger' : 'neutral'}
+        />
         <StatTile label="Cerradas este mes" value={data.closedThisMonth} tone="success" />
         <StatTile
           label="Tiempo promedio total"
@@ -56,6 +71,8 @@ export function DashboardPage() {
           label="Mayor acumulacion"
           value={data.busiestStage ? data.busiestStage.stage.name : '—'}
           detail={data.busiestStage ? `${data.busiestStage.orders} ordenes` : undefined}
+          tone="gold"
+          className="sm:col-span-2 lg:col-span-2"
         />
       </div>
 

@@ -58,9 +58,9 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background lg:flex-row">
-      <header className="flex items-center justify-between gap-2 border-b border-line bg-brand-900 px-4 py-2 text-white lg:hidden">
-        <Link to="/dashboard" className="text-sm font-semibold">
-          Zorzal Lirio OS
+      <header className="flex items-center justify-between gap-2 border-b border-line bg-brand-900 px-3 py-2 text-white lg:hidden">
+        <Link to="/dashboard" className="rounded-lg bg-white px-2.5 py-1.5">
+          <img src="/logo.webp" alt="Zorzal Lirio OS" className="h-5 w-auto" />
         </Link>
         <Button
           variant="ghost"
@@ -78,17 +78,20 @@ export function AppLayout() {
         id="menu-principal"
         aria-label="Navegacion principal"
         className={cn(
-          'shrink-0 border-line bg-brand-900 text-white lg:block lg:w-56 lg:border-r',
+          'shrink-0 border-line bg-brand-900 text-white lg:block lg:w-60 lg:border-r',
           menuOpen ? 'block' : 'hidden',
         )}
       >
-        <div className="hidden px-4 py-4 lg:block">
-          <Link to="/dashboard" className="block text-base font-semibold">
-            Zorzal Lirio OS
+        {/* Celda blanca del logo incrustada en la barra oscura: el propio patron bento. */}
+        <div className="hidden p-3 lg:block">
+          <Link to="/dashboard" className="block rounded-2xl bg-white px-3.5 py-3">
+            <img src="/logo.webp" alt="Zorzal Lirio OS" className="h-7 w-auto" />
           </Link>
-          <p className="text-xs text-white/60">Control de produccion</p>
+          <p className="mt-2 px-1 text-xs font-medium tracking-wide text-white/50 uppercase">
+            Control de produccion
+          </p>
         </div>
-        <ul className="flex flex-col gap-0.5 p-2">
+        <ul className="flex flex-col gap-0.5 p-2 lg:pt-1">
           {items.map((item) => (
             <li key={`${item.to}-${item.label}`}>
               <NavLink
@@ -97,9 +100,9 @@ export function AppLayout() {
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    'block rounded px-3 py-2 text-sm transition-colors',
+                    'block rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                     isActive && location.search === (item.to.split('?')[1] ? `?${item.to.split('?')[1]}` : '')
-                      ? 'bg-white/15 font-semibold text-white'
+                      ? 'bg-gold-500 font-semibold text-brand-900'
                       : 'text-white/80 hover:bg-white/10',
                   )
                 }

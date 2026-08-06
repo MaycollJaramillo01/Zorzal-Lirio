@@ -1,32 +1,36 @@
 @import 'tailwindcss';
 
-/* Paleta editable de Zorzal Lirio. */
+/* Paleta editable de Zorzal Lirio, extraida de los pixeles del logo. */
 :root {
-  --brand-900: #17352d;
-  --brand-700: #245444;
-  --brand-500: #3e7c66;
-  --lirio-500: #8b6cae;
+  --brand-900: #1e1e1e; /* tinta del wordmark */
+  --brand-700: #634124; /* marron del isotipo */
+  --brand-500: #8b6244; /* marron claro, uso decorativo */
+  --gold-500: #ffcc00; /* dorado del isotipo, acento */
+  --gold-700: #8a6a00; /* dorado oscurecido, seguro para texto */
   --surface: #ffffff;
-  --background: #f4f6f5;
-  --border: #dce3df;
-  --text: #17211d;
-  --muted: #64726b;
-  --warning: #b7791f;
+  --background: #f6f4ef;
+  --border: #e4e0d8;
+  --text: #1e1e1e;
+  --muted: #6b6b6b;
+  --warning: var(--gold-700);
   --danger: #b42318;
   --success: #237a57;
 
-  --surface-muted: #eef1ef;
-  --warning-soft: #fdf6e7;
+  --surface-muted: #f1ede6;
+  --warning-soft: #fff6d6;
   --danger-soft: #fdf0ef;
   --success-soft: #eef7f2;
-  --brand-soft: #eaf1ee;
+  --brand-soft: #f1e4d6;
+  --gold-soft: #fff3c4;
 }
 
 @theme inline {
   --color-brand-900: var(--brand-900);
   --color-brand-700: var(--brand-700);
   --color-brand-500: var(--brand-500);
-  --color-lirio-500: var(--lirio-500);
+  --color-gold-500: var(--gold-500);
+  --color-gold-700: var(--gold-700);
+  --color-gold-soft: var(--gold-soft);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
   --color-background: var(--background);

@@ -37,16 +37,21 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-sm">
-        <div className="mb-5 text-center">
-          <h1 className="text-2xl font-semibold text-brand-900">Zorzal Lirio OS</h1>
-          <p className="text-sm text-muted">Control de produccion de uniformes</p>
+        <div className="mb-4 flex justify-center">
+          <div className="rounded-2xl border-2 border-brand-900 bg-white px-6 py-4">
+            <img src="/logo.webp" alt="Zorzal Lirio OS" className="h-9 w-auto" />
+          </div>
         </div>
+        <p className="mb-5 text-center text-sm font-medium text-muted">
+          Control de produccion de uniformes
+        </p>
 
         <form
           onSubmit={onSubmit}
           noValidate
-          className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
+          className="relative flex flex-col gap-4 rounded-2xl border-2 border-brand-900 bg-surface p-5"
         >
+          <span aria-hidden="true" className="absolute top-0 right-6 h-2 w-10 rounded-b-full bg-gold-500" />
           <h2 className="text-base font-semibold text-ink">Iniciar sesion</h2>
 
           {serverError ? (

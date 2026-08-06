@@ -21,7 +21,7 @@ import { cn } from '../lib/format';
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const buttonStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-brand-700 text-white hover:bg-brand-900 disabled:bg-brand-500',
+  primary: 'bg-brand-900 text-white hover:bg-brand-700 disabled:bg-brand-500',
   secondary: 'bg-surface text-ink border border-line hover:bg-surface-muted',
   ghost: 'bg-transparent text-ink hover:bg-surface-muted',
   danger: 'bg-danger text-white hover:brightness-90',
@@ -138,7 +138,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={cn('rounded-lg border border-line bg-surface', className)}>
+    <section className={cn('rounded-2xl border border-line bg-surface', className)}>
       {(title || actions) && (
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
           {title ? <h2 className="text-sm font-semibold text-ink">{title}</h2> : <span />}
@@ -150,29 +150,55 @@ export function Card({
   );
 }
 
+/**
+ * Celda de estilo bento: los tonos "ink" y "gold" se usan como bloques de
+ * color solido (acento) entre celdas blancas, en vez de sombra o degradado.
+ */
 export function StatTile({
   label,
   value,
   detail,
   tone = 'neutral',
+  className,
 }: {
   label: string;
   value: ReactNode;
   detail?: string;
-  tone?: 'neutral' | 'warning' | 'danger' | 'success';
+  tone?: 'neutral' | 'warning' | 'danger' | 'success' | 'ink' | 'gold';
+  className?: string;
 }) {
   const tones = {
-    neutral: 'border-line',
-    warning: 'border-warning/40 bg-warning-soft',
-    danger: 'border-danger/40 bg-danger-soft',
-    success: 'border-success/40 bg-success-soft',
+    neutral: 'border-line bg-surface text-ink',
+    warning: 'border-warning/30 bg-warning-soft text-ink',
+    danger: 'border-danger/30 bg-danger-soft text-ink',
+    success: 'border-success/30 bg-success-soft text-ink',
+    ink: 'border-brand-900 bg-brand-900 text-white',
+    gold: 'border-gold-500 bg-gold-500 text-brand-900',
+  } as const;
+
+  const labelTones = {
+    neutral: 'text-muted',
+    warning: 'text-warning',
+    danger: 'text-danger',
+    success: 'text-success',
+    ink: 'text-white/65',
+    gold: 'text-brand-900/70',
+  } as const;
+
+  const detailTones = {
+    neutral: 'text-muted',
+    warning: 'text-ink/70',
+    danger: 'text-ink/70',
+    success: 'text-ink/70',
+    ink: 'text-white/70',
+    gold: 'text-brand-900/70',
   } as const;
 
   return (
-    <div className={cn('rounded-lg border bg-surface px-4 py-3', tones[tone])}>
-      <p className="text-xs font-semibold tracking-wide text-muted uppercase">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-ink tabular-nums">{value}</p>
-      {detail ? <p className="mt-0.5 text-xs text-muted">{detail}</p> : null}
+    <div className={cn('flex flex-col justify-between rounded-2xl border-2 px-4 py-3.5', tones[tone], className)}>
+      <p className={cn('text-xs font-semibold tracking-wide uppercase', labelTones[tone])}>{label}</p>
+      <p className="mt-2 text-3xl font-bold tabular-nums">{value}</p>
+      {detail ? <p className={cn('mt-1 text-xs', detailTones[tone])}>{detail}</p> : null}
     </div>
   );
 }

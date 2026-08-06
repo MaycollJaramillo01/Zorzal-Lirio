@@ -306,7 +306,7 @@ export function ReportsPage() {
                   <XAxis dataKey="etapa" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={54} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="Horas" fill="var(--lirio-500)" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Horas" fill="var(--gold-700)" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
