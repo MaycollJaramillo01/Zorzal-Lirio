@@ -3,9 +3,21 @@ export interface CsvColumn<T> {
   value: (row: T) => string | number | null | undefined;
 }
 
+/**
+ * Caracteres con los que Excel y LibreOffice interpretan la celda como formula.
+ * Texto escrito por el usuario (cliente, proyecto, notas) llega al CSV, asi que
+ * se neutraliza anteponiendo un apostrofe. Los numeros los genera el sistema y
+ * se dejan intactos para que sigan siendo numeros en la hoja de calculo.
+ */
+const FORMULA_PREFIX = /^[=+\-@\t\r]/;
+
+function neutralizeFormula(text: string): string {
+  return FORMULA_PREFIX.test(text) ? `'${text}` : text;
+}
+
 function escapeCell(raw: string | number | null | undefined): string {
   if (raw === null || raw === undefined) return '';
-  const text = String(raw);
+  const text = typeof raw === 'number' ? String(raw) : neutralizeFormula(String(raw));
   if (/[";\n\r]/.test(text)) {
     return `"${text.replace(/"/g, '""')}"`;
   }

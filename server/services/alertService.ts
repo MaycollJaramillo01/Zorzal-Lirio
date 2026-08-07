@@ -74,15 +74,23 @@ export function buildAlertContent(
   };
 }
 
+/** Combina responsable actual y gestores activos, sin repetir usuarios. */
+export function mergeRecipients(managerIds: string[], assigneeId: string | null): string[] {
+  const ids = new Set(managerIds);
+  if (assigneeId) ids.add(assigneeId);
+  return [...ids];
+}
+
 /**
  * Destinatarios de una alerta: responsable actual mas duenos y administradores
  * activos, sin repetir usuarios.
  */
 export async function resolveRecipients(assigneeId: string | null): Promise<string[]> {
   const managers = await listActiveUsersByRoles(['OWNER', 'ADMIN']);
-  const ids = new Set(managers.map((manager) => manager.id));
-  if (assigneeId) ids.add(assigneeId);
-  return [...ids];
+  return mergeRecipients(
+    managers.map((manager) => manager.id),
+    assigneeId,
+  );
 }
 
 export interface AlertPlan {
@@ -114,8 +122,12 @@ export async function createAndDispatchAlerts(plans: AlertPlan[]): Promise<Alert
 
   const candidates: Array<PendingAlertInput & { alertType: AlertType }> = [];
 
+  // Los gestores se consultan una sola vez, no una por orden atrasada.
+  const managers = await listActiveUsersByRoles(['OWNER', 'ADMIN']);
+  const managerIds = managers.map((manager) => manager.id);
+
   for (const plan of plans) {
-    const recipients = await resolveRecipients(plan.context.assigneeId);
+    const recipients = mergeRecipients(managerIds, plan.context.assigneeId);
     const { subject, message } = buildAlertContent(plan.context, plan.alertType, plan.sla);
 
     for (const recipientUserId of recipients) {

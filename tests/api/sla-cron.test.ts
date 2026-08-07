@@ -57,8 +57,20 @@ describeWithDb('revision de SLA, alertas y cron', () => {
     ).toBe(401);
   });
 
+  /** Alertas existentes de una orden, con su numero de claves distintas. */
+  async function alertsFor(orderId: string): Promise<{ total: number; dedupeKeys: number }> {
+    const { eq } = await import('drizzle-orm');
+    const { getDb } = await import('../../server/db/client.js');
+    const { alerts } = await import('../../server/db/schema.js');
+    const rows = await getDb()
+      .select({ dedupeKey: alerts.dedupeKey })
+      .from(alerts)
+      .where(eq(alerts.orderId, orderId));
+    return { total: rows.length, dedupeKeys: new Set(rows.map((row) => row.dedupeKey)).size };
+  }
+
   it('crea alertas con el cron autorizado y no las duplica al repetir', async () => {
-    await createOverdueOrder();
+    const order = await createOverdueOrder();
     const secret = process.env.CRON_SECRET ?? 'cron-secreto-de-pruebas';
 
     const first = await request(app)
@@ -70,13 +82,24 @@ describeWithDb('revision de SLA, alertas y cron', () => {
     expect(first.body.checkedOrders).toBeGreaterThan(0);
     expect(first.body.warningsCreated + first.body.overdueCreated).toBeGreaterThan(0);
 
+    const afterFirst = await alertsFor(order.id);
+    expect(afterFirst.total).toBeGreaterThan(0);
+    expect(afterFirst.dedupeKeys).toBe(afterFirst.total);
+
     const second = await request(app)
       .get('/api/cron/sla')
       .set('Authorization', `Bearer ${secret}`);
-
     expect(second.status).toBe(200);
-    expect(second.body.warningsCreated).toBe(0);
-    expect(second.body.overdueCreated).toBe(0);
+
+    const third = await request(app)
+      .get('/api/cron/sla')
+      .set('Authorization', `Bearer ${secret}`);
+    expect(third.status).toBe(200);
+
+    // Repetir la revision no agrega ni una alerta mas a la misma orden y tramo.
+    const afterRepeats = await alertsFor(order.id);
+    expect(afterRepeats.total).toBe(afterFirst.total);
+    expect(afterRepeats.dedupeKeys).toBe(afterFirst.total);
   });
 
   it('vuelve a alertar cuando la orden entra a una etapa nueva', async () => {

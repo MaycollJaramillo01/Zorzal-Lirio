@@ -31,7 +31,9 @@ export const STAGE_DEFINITIONS: readonly StageDefinition[] = [
     name: 'Orden recibida',
     position: 1,
     slaMinutes: 1 * MINUTES_PER_DAY,
-    warningBeforeMinutes: 1 * MINUTES_PER_DAY,
+    // Media jornada de aviso. Con un aviso igual al SLA la etapa nacia siempre
+    // en "Proximo a vencer" y el estado "En tiempo" era inalcanzable.
+    warningBeforeMinutes: MINUTES_PER_DAY / 2,
     isSlaEnabled: true,
   },
   {

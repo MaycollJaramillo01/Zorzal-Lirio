@@ -1,5 +1,10 @@
-import { calendarDateToUtc } from '../../shared/lib/datetime.js';
+import {
+  endOfCalendarDayUtc,
+  startOfCalendarDayUtc,
+  todayCalendarDate,
+} from '../../shared/lib/datetime.js';
 import { formatDuration } from '../../shared/lib/sla.js';
+import { env } from '../config/env.js';
 import { CLOSED_STAGE_CODE } from '../../shared/constants/stages.js';
 import type { ReportFilters } from '../../shared/schemas/reports.js';
 import type {
@@ -25,10 +30,16 @@ import {
 import { listStages, toStageDto } from '../repositories/stageRepository.js';
 import { loadActiveOrderCards } from './orderService.js';
 
+/**
+ * El rango cubre los dias completos elegidos por el usuario en la zona horaria
+ * de la operacion. Anclar ambos extremos al mediodia UTC dejaba fuera media
+ * jornada del primer y del ultimo dia.
+ */
 function rangeFrom(filters: ReportFilters): { from?: Date; to?: Date } {
+  const tz = env.APP_TIMEZONE;
   return {
-    from: filters.from ? calendarDateToUtc(filters.from) : undefined,
-    to: filters.to ? calendarDateToUtc(filters.to) : undefined,
+    from: filters.from ? startOfCalendarDayUtc(filters.from, tz) : undefined,
+    to: filters.to ? endOfCalendarDayUtc(filters.to, tz) : undefined,
   };
 }
 
@@ -169,9 +180,9 @@ export async function getDashboard(viewer: AuthUser): Promise<DashboardSummary> 
     : all;
 
   const stages = (await listStages()).map(toStageDto);
-  const startOfMonth = new Date(
-    Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1, 0, 0, 0),
-  );
+  // "Cerradas este mes" se cuenta con el calendario de la planta, no con el de UTC.
+  const tz = env.APP_TIMEZONE;
+  const startOfMonth = startOfCalendarDayUtc(`${todayCalendarDate(tz).slice(0, 7)}-01`, tz);
 
   const [closedThisMonth, leadTime, activity] = await Promise.all([
     countClosedSince(startOfMonth),

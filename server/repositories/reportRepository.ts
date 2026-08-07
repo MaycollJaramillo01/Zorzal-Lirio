@@ -68,6 +68,7 @@ export async function countOpenAndClosedOrders(
   return { open: row?.open ?? 0, closed: row?.closed ?? 0 };
 }
 
+/** Excluye archivadas, igual que el resto de indicadores del dashboard. */
 export async function countClosedSince(
   since: Date,
   exec: DbExecutor = getDb(),
@@ -75,7 +76,9 @@ export async function countClosedSince(
   const [row] = await exec
     .select({ total: sql<number>`count(*)::int` })
     .from(orders)
-    .where(and(isNotNull(orders.closedAt), gte(orders.closedAt, since)));
+    .where(
+      and(isNotNull(orders.closedAt), gte(orders.closedAt, since), eq(orders.isArchived, false)),
+    );
   return row?.total ?? 0;
 }
 
@@ -107,6 +110,13 @@ export async function stageWithMostSlaMisses(
 
   return rows[0] ?? null;
 }
+
+/**
+ * Techo de la exportacion de historial: evita que un filtro amplio traiga la
+ * tabla completa a memoria y agote la funcion serverless.
+ * ponytail: si se necesitan volumenes mayores, exportar por lotes con cursor.
+ */
+export const EXPORT_ROW_LIMIT = 50_000;
 
 export interface HistoryExportRow {
   orderCode: string;
@@ -153,5 +163,6 @@ export async function listHistoryForExport(
     .leftJoin(exportAssignee, eq(exportAssignee.id, orderStageHistory.assigneeId))
     .leftJoin(exportMover, eq(exportMover.id, orderStageHistory.movedByUserId))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(asc(orders.orderCode), asc(orderStageHistory.enteredAt));
+    .orderBy(asc(orders.orderCode), asc(orderStageHistory.enteredAt))
+    .limit(EXPORT_ROW_LIMIT);
 }

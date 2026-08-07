@@ -22,7 +22,7 @@ import type {
 } from '@shared/types/index';
 import type { OrderFilters } from '@shared/schemas/orders';
 import type { ReportFilters } from '@shared/schemas/reports';
-import { apiFetch, buildQuery } from '../lib/api';
+import { ApiError, apiFetch, buildQuery } from '../lib/api';
 
 export const queryKeys = {
   session: ['session'] as const,
@@ -137,6 +137,19 @@ export function useUsers() {
       apiFetch<{ users: TeamMember[] | UserRef[] }>('/users').then((data) => data.users),
     staleTime: 60_000,
   });
+}
+
+/** Lista plana de usuarios para mostrar (incluye desactivados). */
+export function toUserRefs(data: Array<UserRef | TeamMember> | undefined): UserRef[] {
+  return (data ?? []).map(({ id, name, email, role }) => ({ id, name, email, role }));
+}
+
+/**
+ * Selector de responsable: solo usuarios activos. El backend rechaza asignar a
+ * un usuario desactivado, asi que ofrecerlo solo provoca un error al confirmar.
+ */
+export function toAssignableUsers(data: Array<UserRef | TeamMember> | undefined): UserRef[] {
+  return toUserRefs((data ?? []).filter((user) => !('isActive' in user) || user.isActive));
 }
 
 export function useTeamMutations() {
@@ -259,6 +272,14 @@ export function useOrderMutations() {
     void client.invalidateQueries({ queryKey: queryKeys.users });
   };
 
+  /**
+   * Ante un conflicto de version (409) hay que recargar de verdad: la version
+   * que tiene la pantalla ya quedo vieja y cualquier reintento fallaria igual.
+   */
+  const onError = (error: unknown) => {
+    if (error instanceof ApiError && error.status === 409) refresh();
+  };
+
   const createOrder = useMutation({
     mutationFn: (input: Record<string, unknown>) =>
       apiFetch<OrderDetail>('/orders', { method: 'POST', json: input }),
@@ -271,6 +292,7 @@ export function useOrderMutations() {
       return apiFetch<OrderDetail>(`/orders/${id}`, { method: 'PATCH', json: rest });
     },
     onSuccess: refresh,
+    onError,
   });
 
   const transitionOrder = useMutation({
@@ -286,6 +308,7 @@ export function useOrderMutations() {
       return apiFetch<OrderDetail>(`/orders/${id}/transition`, { method: 'POST', json: rest });
     },
     onSuccess: refresh,
+    onError,
   });
 
   const reassignOrder = useMutation({
@@ -294,6 +317,7 @@ export function useOrderMutations() {
       return apiFetch<OrderDetail>(`/orders/${id}/reassign`, { method: 'POST', json: rest });
     },
     onSuccess: refresh,
+    onError,
   });
 
   const archiveOrder = useMutation({
@@ -303,6 +327,7 @@ export function useOrderMutations() {
         json: { version: input.version, reason: input.reason },
       }),
     onSuccess: refresh,
+    onError,
   });
 
   const addNote = useMutation({

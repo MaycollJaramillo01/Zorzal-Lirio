@@ -7,7 +7,14 @@ import { KanbanBoard } from '../features/kanban/KanbanBoard';
 import { TransitionModal } from '../features/kanban/TransitionModal';
 import { useOrderFilters } from '../features/kanban/useOrderFilters';
 import { OrderCreateModal } from '../features/orders/OrderFormModal';
-import { useOrders, useSession, useStages, useUsers } from '../services/queries';
+import {
+  toAssignableUsers,
+  toUserRefs,
+  useOrders,
+  useSession,
+  useStages,
+  useUsers,
+} from '../services/queries';
 
 export function OrdersPage() {
   const { data: session } = useSession();
@@ -19,13 +26,14 @@ export function OrdersPage() {
   const [pending, setPending] = useState<{ order: OrderCard; stageId: string } | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
+  // El filtro incluye a los desactivados (siguen teniendo ordenes asignadas);
+  // el selector de responsable, no.
   const users = useMemo<UserRef[]>(
-    () => ((usersQuery.data ?? []) as Array<UserRef | TeamMember>).map((user) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    })),
+    () => toUserRefs(usersQuery.data as Array<UserRef | TeamMember> | undefined),
+    [usersQuery.data],
+  );
+  const assignableUsers = useMemo<UserRef[]>(
+    () => toAssignableUsers(usersQuery.data as Array<UserRef | TeamMember> | undefined),
     [usersQuery.data],
   );
 
@@ -88,13 +96,13 @@ export function OrdersPage() {
         order={pending?.order ?? null}
         targetStage={targetStage}
         stages={stages}
-        users={users}
+        users={assignableUsers}
         role={session.role}
         onClose={() => setPending(null)}
         onStageChange={(stageId) => setPending((current) => (current ? { ...current, stageId } : current))}
       />
 
-      <OrderCreateModal open={createOpen} users={users} onClose={() => setCreateOpen(false)} />
+      <OrderCreateModal open={createOpen} users={assignableUsers} onClose={() => setCreateOpen(false)} />
     </div>
   );
 }

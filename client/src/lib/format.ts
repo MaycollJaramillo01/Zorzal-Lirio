@@ -3,6 +3,7 @@ import {
   formatDate,
   formatDateTime,
   formatLongDateTime,
+  todayCalendarDate as todayInTimeZone,
 } from '@shared/lib/datetime';
 import { formatDuration } from '@shared/lib/sla';
 
@@ -23,8 +24,12 @@ export function initials(name: string): string {
     .join('');
 }
 
+/**
+ * Hoy segun el reloj de la planta. Con `toISOString()` el formulario proponia
+ * la fecha del dia siguiente entre las 18:00 y la medianoche de Managua.
+ */
 export function todayCalendarDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayInTimeZone(APP_TIMEZONE);
 }
 
 export function cn(...values: Array<string | false | null | undefined>): string {

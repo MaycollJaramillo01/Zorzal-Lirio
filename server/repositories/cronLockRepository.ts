@@ -1,4 +1,4 @@
-import { eq, lt } from 'drizzle-orm';
+import { and, eq, lt } from 'drizzle-orm';
 import { getDb } from '../db/client.js';
 import { cronLocks } from '../db/schema.js';
 
@@ -31,12 +31,20 @@ export async function acquireCronLock(
   return acquired.length > 0;
 }
 
-export async function releaseCronLock(name: string, summary: unknown): Promise<void> {
+/**
+ * Solo libera si el lock sigue siendo de quien lo tomo: una ejecucion lenta que
+ * termina despues de expirar no debe soltar el lock de la ejecucion siguiente.
+ */
+export async function releaseCronLock(
+  name: string,
+  lockedBy: string,
+  summary: unknown,
+): Promise<void> {
   const db = getDb();
   await db
     .update(cronLocks)
     .set({ expiresAt: new Date(0), lastRunAt: new Date(), lastSummary: summary ?? null })
-    .where(eq(cronLocks.name, name));
+    .where(and(eq(cronLocks.name, name), eq(cronLocks.lockedBy, lockedBy)));
 }
 
 export async function getCronLock(name: string) {

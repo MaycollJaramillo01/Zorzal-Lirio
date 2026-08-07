@@ -1,3 +1,7 @@
+// Carga .env antes que nada: sin DATABASE_URL las pruebas de integracion se
+// omitian en silencio y la suite reportaba verde sin haber probado la API.
+import 'dotenv/config';
+
 process.env.NODE_ENV = 'test';
 process.env.SESSION_SECRET ??= 'clave-de-pruebas-zorzal-lirio-os-32-caracteres';
 process.env.CRON_SECRET ??= 'cron-secreto-de-pruebas';

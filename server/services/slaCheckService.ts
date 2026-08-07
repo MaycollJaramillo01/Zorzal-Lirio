@@ -103,7 +103,7 @@ export async function runSlaCheck(options: SlaCheckOptions): Promise<SlaCheckSum
     throw error;
   } finally {
     // El lock se libera siempre, incluso ante error.
-    await releaseCronLock(SLA_LOCK_NAME, summary).catch((error: unknown) => {
+    await releaseCronLock(SLA_LOCK_NAME, owner, summary).catch((error: unknown) => {
       logger.error({ err: error }, 'No se pudo liberar el lock de SLA');
     });
   }

@@ -7,6 +7,9 @@ const clientSrc = fileURLToPath(new URL('./client/src', import.meta.url));
 
 export default defineConfig({
   test: {
+    // Las pruebas de integracion comparten una sola base de datos Neon: en
+    // paralelo se pisan el consecutivo de ordenes y las alertas del cron.
+    fileParallelism: false,
     projects: [
       {
         test: {

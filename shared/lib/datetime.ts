@@ -1,11 +1,23 @@
-import { formatInTimeZone } from 'date-fns-tz';
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 import { es } from 'date-fns/locale';
 
 /** Zona horaria de presentacion. El almacenamiento siempre es UTC. */
 export const DEFAULT_TIMEZONE = 'America/Managua';
 
+/** "2026-08-07": fecha de calendario sin hora ni zona. */
+const CALENDAR_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Normaliza cualquier entrada a `Date`.
+ *
+ * Una fecha de calendario ("2026-08-07") se ancla al mediodia UTC: si se dejara
+ * en la medianoche UTC que usa `new Date(...)`, al formatearla en America/Managua
+ * (UTC-6) se mostraria el dia anterior.
+ */
 export function toDate(value: Date | string | number): Date {
-  return value instanceof Date ? value : new Date(value);
+  if (value instanceof Date) return value;
+  if (typeof value === 'string' && CALENDAR_DATE.test(value)) return calendarDateToUtc(value);
+  return new Date(value);
 }
 
 export function formatDateTime(value: Date | string | number, timeZone = DEFAULT_TIMEZONE): string {
@@ -33,7 +45,25 @@ export function calendarDateToUtc(value: string): Date {
   return new Date(`${value}T12:00:00.000Z`);
 }
 
-/** Devuelve "YYYY-MM-DD" a partir de una fecha almacenada. */
-export function toCalendarDate(value: Date | string | number): string {
-  return toDate(value).toISOString().slice(0, 10);
+/** Devuelve "YYYY-MM-DD" de una fecha, leida en la zona horaria indicada. */
+export function toCalendarDate(
+  value: Date | string | number,
+  timeZone = DEFAULT_TIMEZONE,
+): string {
+  return formatInTimeZone(toDate(value), timeZone, 'yyyy-MM-dd');
+}
+
+/** Fecha de hoy segun el reloj de la operacion, no segun UTC. */
+export function todayCalendarDate(timeZone = DEFAULT_TIMEZONE): string {
+  return toCalendarDate(new Date(), timeZone);
+}
+
+/** Instante UTC en que empieza "YYYY-MM-DD" en la zona horaria indicada. */
+export function startOfCalendarDayUtc(value: string, timeZone = DEFAULT_TIMEZONE): Date {
+  return fromZonedTime(`${value}T00:00:00.000`, timeZone);
+}
+
+/** Instante UTC en que termina "YYYY-MM-DD" en la zona horaria indicada. */
+export function endOfCalendarDayUtc(value: string, timeZone = DEFAULT_TIMEZONE): Date {
+  return fromZonedTime(`${value}T23:59:59.999`, timeZone);
 }

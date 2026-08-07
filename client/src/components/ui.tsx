@@ -137,8 +137,11 @@ export function Card({
   children: ReactNode;
   className?: string;
 }) {
+  // `min-w-0`: sin esto una celda de grid no baja de su ancho intrinseco y los
+  // graficos de Recharts empujan la pagina fuera de la pantalla en moviles
+  // angostos (320 px).
   return (
-    <section className={cn('rounded-2xl border border-line bg-surface', className)}>
+    <section className={cn('min-w-0 rounded-2xl border border-line bg-surface', className)}>
       {(title || actions) && (
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
           {title ? <h2 className="text-sm font-semibold text-ink">{title}</h2> : <span />}

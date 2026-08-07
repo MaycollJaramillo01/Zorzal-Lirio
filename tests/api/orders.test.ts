@@ -49,19 +49,47 @@ describeWithDb('ordenes: creacion, transiciones e historial', () => {
     await closePool();
   });
 
+  /**
+   * El consecutivo es un contador compartido por ano. Se comprueba contra
+   * `order_sequences`, no contra la distancia entre dos codigos: cualquier otro
+   * cliente conectado a la misma base tambien consume numeros.
+   */
+  async function readSequence(year: number): Promise<number> {
+    const { eq } = await import('drizzle-orm');
+    const { getDb } = await import('../../server/db/client.js');
+    const { orderSequences } = await import('../../server/db/schema.js');
+    const [row] = await getDb()
+      .select({ lastNumber: orderSequences.lastNumber })
+      .from(orderSequences)
+      .where(eq(orderSequences.year, year))
+      .limit(1);
+    return row?.lastNumber ?? 0;
+  }
+
   it('crea una orden en Orden recibida con codigo consecutivo', async () => {
+    const year = new Date().getUTCFullYear();
+
+    const before = await readSequence(year);
     const first = await createOrder();
-    const second = await createOrder();
+    const afterFirst = await readSequence(year);
 
     expect(first.orderCode).toMatch(ORDER_CODE_PATTERN);
-    expect(second.orderCode).toMatch(ORDER_CODE_PATTERN);
     expect(first.stage.code).toBe('ORDER_RECEIVED');
     expect(first.assignee?.email).toBe(SEED_USERS.compras.email);
     expect(first.version).toBe(1);
 
-    const firstNumber = Number(first.orderCode.split('-')[2]);
-    const secondNumber = Number(second.orderCode.split('-')[2]);
-    expect(secondNumber).toBe(firstNumber + 1);
+    // El contador avanza exactamente uno y el codigo refleja ese numero.
+    expect(afterFirst).toBe(before + 1);
+    expect(first.orderCode).toBe(`ZL-${year}-${String(afterFirst).padStart(4, '0')}`);
+
+    const second = await createOrder();
+    const afterSecond = await readSequence(year);
+    expect(second.orderCode).toMatch(ORDER_CODE_PATTERN);
+    expect(afterSecond).toBe(afterFirst + 1);
+    expect(second.orderCode).toBe(`ZL-${year}-${String(afterSecond).padStart(4, '0')}`);
+    expect(Number(second.orderCode.split('-')[2])).toBeGreaterThan(
+      Number(first.orderCode.split('-')[2]),
+    );
   });
 
   it('genera codigos distintos con creaciones concurrentes', async () => {

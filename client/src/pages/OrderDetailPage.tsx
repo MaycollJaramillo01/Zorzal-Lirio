@@ -22,6 +22,7 @@ import { OrderEditModal } from '../features/orders/OrderFormModal';
 import { ApiError } from '../lib/api';
 import { fmtDate, fmtDateTime, fmtDuration } from '../lib/format';
 import {
+  toAssignableUsers,
   useOrder,
   useOrderAudit,
   useOrderHistory,
@@ -64,12 +65,10 @@ export function OrderDetailPage() {
   const order = orderQuery.data;
   const manager = isManager(session.role);
   const stages: StageDto[] = stagesQuery.data ?? [];
-  const users: UserRef[] = ((usersQuery.data ?? []) as Array<UserRef | TeamMember>).map((user) => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  }));
+  // Solo usuarios activos: el backend rechaza asignar a alguien desactivado.
+  const users: UserRef[] = toAssignableUsers(
+    usersQuery.data as Array<UserRef | TeamMember> | undefined,
+  );
 
   const nextStage = stages.find((stage) => stage.position === order.stage.position + 1);
   const targetStage = moveOpen ? (stages.find((stage) => stage.id === moveOpen) ?? null) : null;
@@ -312,7 +311,20 @@ function NotesSection({
                   size="sm"
                   variant="ghost"
                   className="mt-1"
-                  onClick={() => hideNote.mutate({ orderId, noteId: note.id })}
+                  disabled={hideNote.isPending}
+                  onClick={() =>
+                    hideNote.mutate(
+                      { orderId, noteId: note.id },
+                      {
+                        onSuccess: () => notify('Nota oculta.'),
+                        onError: (error) =>
+                          notify(
+                            error instanceof ApiError ? error.message : 'No se pudo ocultar la nota.',
+                            'error',
+                          ),
+                      },
+                    )
+                  }
                 >
                   Ocultar nota
                 </Button>
