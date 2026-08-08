@@ -45,7 +45,7 @@ export const ALERT_TYPE_LABELS: Record<AlertType, string> = {
   SLA_OVERDUE: 'Atrasado',
 };
 
-export const ALERT_CHANNELS = ['EMAIL', 'CONSOLE'] as const;
+export const ALERT_CHANNELS = ['EMAIL', 'CONSOLE', 'WHATSAPP'] as const;
 export type AlertChannel = (typeof ALERT_CHANNELS)[number];
 
 export const ALERT_STATUSES = ['PENDING', 'SENT', 'FAILED'] as const;

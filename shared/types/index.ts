@@ -70,6 +70,8 @@ export interface TeamMember extends UserRef {
   lastLoginAt: string | null;
   createdAt: string;
   isPrimaryOwner: boolean;
+  whatsappPhone: string | null;
+  whatsappNotificationsEnabled: boolean;
   stageFocus: StageRef[];
   activeOrders: number;
   overdueOrders: number;
@@ -269,6 +271,7 @@ export interface SlaCheckSummary {
   warningsCreated: number;
   overdueCreated: number;
   emailsSent: number;
+  whatsappSent: number;
   consoleAlerts: number;
   failedAlerts: number;
   skipped?: boolean;

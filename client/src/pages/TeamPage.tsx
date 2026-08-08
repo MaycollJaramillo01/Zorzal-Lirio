@@ -47,11 +47,12 @@ export function TeamPage() {
 
       <Card>
         <div className="zl-scroll overflow-x-auto">
-          <table className="w-full min-w-[56rem] border-collapse text-sm">
+          <table className="w-full min-w-[64rem] border-collapse text-sm">
             <thead>
               <tr className="border-b border-line text-left text-xs tracking-wide text-muted uppercase">
                 <th className="py-2 pr-3">Usuario</th>
                 <th className="py-2 pr-3">Rol</th>
+                <th className="py-2 pr-3">WhatsApp</th>
                 <th className="py-2 pr-3">Etapas de enfoque</th>
                 <th className="py-2 pr-3">Asignadas</th>
                 <th className="py-2 pr-3">Atrasadas</th>
@@ -77,6 +78,18 @@ export function TeamPage() {
                     {member.isPrimaryOwner ? (
                       <p className="mt-1 text-[11px] text-muted">Dueno principal</p>
                     ) : null}
+                  </td>
+                  <td className="py-2 pr-3 text-xs">
+                    {member.whatsappPhone ? (
+                      <>
+                        <p className="font-medium text-ink">{member.whatsappPhone}</p>
+                        <p className={member.whatsappNotificationsEnabled ? 'text-success' : 'text-muted'}>
+                          {member.whatsappNotificationsEnabled ? 'Alertas activas' : 'Alertas desactivadas'}
+                        </p>
+                      </>
+                    ) : (
+                      <span className="text-muted">Sin configurar</span>
+                    )}
                   </td>
                   <td className="py-2 pr-3 text-xs text-muted">
                     {member.stageFocus.length === 0
@@ -169,6 +182,8 @@ function CreateUserModal({
     role: 'PLANT' as Role,
     password: '',
     mustChangePassword: true,
+    whatsappPhone: '',
+    whatsappNotificationsEnabled: false,
   });
   const [stageIds, setStageIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -178,9 +193,21 @@ function CreateUserModal({
   const submit = async () => {
     setError(null);
     try {
-      await createUser.mutateAsync({ ...form, stageIds });
+      await createUser.mutateAsync({
+        ...form,
+        whatsappPhone: form.whatsappPhone || null,
+        stageIds,
+      });
       notify('Usuario creado.');
-      setForm({ name: '', email: '', role: 'PLANT', password: '', mustChangePassword: true });
+      setForm({
+        name: '',
+        email: '',
+        role: 'PLANT',
+        password: '',
+        mustChangePassword: true,
+        whatsappPhone: '',
+        whatsappNotificationsEnabled: false,
+      });
       setStageIds([]);
       onClose();
     } catch (caught) {
@@ -253,6 +280,35 @@ function CreateUserModal({
           checked={form.mustChangePassword}
           onChange={(event) => setForm({ ...form, mustChangePassword: event.target.checked })}
         />
+        <Field
+          label="WhatsApp interno"
+          htmlFor="nuevo-whatsapp"
+          hint="Numero del usuario de Zorzal Lirio OS en formato +504..."
+        >
+          <Input
+            id="nuevo-whatsapp"
+            type="tel"
+            placeholder="+50488328459"
+            value={form.whatsappPhone}
+            onChange={(event) => {
+              const whatsappPhone = event.target.value;
+              setForm({
+                ...form,
+                whatsappPhone,
+                whatsappNotificationsEnabled:
+                  whatsappPhone.trim() === '' ? false : form.whatsappNotificationsEnabled,
+              });
+            }}
+          />
+        </Field>
+        <Checkbox
+          label="Enviar alertas operativas por WhatsApp"
+          checked={form.whatsappNotificationsEnabled}
+          disabled={!form.whatsappPhone.trim()}
+          onChange={(event) =>
+            setForm({ ...form, whatsappNotificationsEnabled: event.target.checked })
+          }
+        />
         <StageFocusPicker stages={stages} selected={stageIds} onChange={setStageIds} />
       </div>
     </Modal>
@@ -262,7 +318,13 @@ function CreateUserModal({
 function EditUserModal({ member, onClose }: { member: TeamMember | null; onClose: () => void }) {
   const { updateUser } = useTeamMutations();
   const { notify } = useToast();
-  const [form, setForm] = useState({ name: '', email: '', role: 'PLANT' as Role });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    role: 'PLANT' as Role,
+    whatsappPhone: '',
+    whatsappNotificationsEnabled: false,
+  });
   const [error, setError] = useState<string | null>(null);
   const [loadedId, setLoadedId] = useState<string | null>(null);
 
@@ -270,13 +332,23 @@ function EditUserModal({ member, onClose }: { member: TeamMember | null; onClose
 
   if (loadedId !== member.id) {
     setLoadedId(member.id);
-    setForm({ name: member.name, email: member.email, role: member.role });
+    setForm({
+      name: member.name,
+      email: member.email,
+      role: member.role,
+      whatsappPhone: member.whatsappPhone ?? '',
+      whatsappNotificationsEnabled: member.whatsappNotificationsEnabled,
+    });
   }
 
   const submit = async () => {
     setError(null);
     try {
-      await updateUser.mutateAsync({ id: member.id, ...form });
+      await updateUser.mutateAsync({
+        id: member.id,
+        ...form,
+        whatsappPhone: form.whatsappPhone || null,
+      });
       notify('Usuario actualizado.');
       onClose();
     } catch (caught) {
@@ -335,6 +407,35 @@ function EditUserModal({ member, onClose }: { member: TeamMember | null; onClose
             ))}
           </Select>
         </Field>
+        <Field
+          label="WhatsApp interno"
+          htmlFor="editar-whatsapp"
+          hint="Debe existir como contacto en la subcuenta conectada de HighLevel."
+        >
+          <Input
+            id="editar-whatsapp"
+            type="tel"
+            placeholder="+50488328459"
+            value={form.whatsappPhone}
+            onChange={(event) => {
+              const whatsappPhone = event.target.value;
+              setForm({
+                ...form,
+                whatsappPhone,
+                whatsappNotificationsEnabled:
+                  whatsappPhone.trim() === '' ? false : form.whatsappNotificationsEnabled,
+              });
+            }}
+          />
+        </Field>
+        <Checkbox
+          label="Enviar alertas operativas por WhatsApp"
+          checked={form.whatsappNotificationsEnabled}
+          disabled={!form.whatsappPhone.trim()}
+          onChange={(event) =>
+            setForm({ ...form, whatsappNotificationsEnabled: event.target.checked })
+          }
+        />
       </div>
     </Modal>
   );

@@ -18,7 +18,7 @@ import {
 export const roleEnum = pgEnum('role', ['OWNER', 'ADMIN', 'PLANT']);
 export const priorityEnum = pgEnum('priority', ['LOW', 'NORMAL', 'HIGH', 'URGENT']);
 export const alertTypeEnum = pgEnum('alert_type', ['SLA_WARNING', 'SLA_OVERDUE']);
-export const alertChannelEnum = pgEnum('alert_channel', ['EMAIL', 'CONSOLE']);
+export const alertChannelEnum = pgEnum('alert_channel', ['EMAIL', 'CONSOLE', 'WHATSAPP']);
 export const alertStatusEnum = pgEnum('alert_status', ['PENDING', 'SENT', 'FAILED']);
 
 const createdAt = timestamp('created_at', { withTimezone: true, mode: 'date' })
@@ -40,6 +40,12 @@ export const users = pgTable(
     mustChangePassword: boolean('must_change_password').notNull().default(false),
     /** Dueno principal creado por el seed: no puede ser degradado ni desactivado. */
     isPrimaryOwner: boolean('is_primary_owner').notNull().default(false),
+    /** Numero E.164 del usuario interno; nunca corresponde a clientes. */
+    whatsappPhone: varchar('whatsapp_phone', { length: 24 }),
+    ghlContactId: varchar('ghl_contact_id', { length: 80 }),
+    whatsappNotificationsEnabled: boolean('whatsapp_notifications_enabled')
+      .notNull()
+      .default(false),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true, mode: 'date' }),
     createdAt,
     updatedAt,
@@ -48,6 +54,7 @@ export const users = pgTable(
     uniqueIndex('users_email_unique').on(table.email),
     index('users_role_idx').on(table.role),
     index('users_is_active_idx').on(table.isActive),
+    index('users_ghl_contact_idx').on(table.ghlContactId),
   ],
 );
 

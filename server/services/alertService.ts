@@ -2,21 +2,27 @@ import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import { formatDuration } from '../../shared/lib/sla.js';
 import { formatLongDate } from '../../shared/lib/datetime.js';
-import type { AlertType } from '../../shared/constants/enums.js';
+import type { AlertChannel, AlertType } from '../../shared/constants/enums.js';
 import type { SlaComputation } from '../../shared/lib/sla.js';
 import {
   buildDedupeKey,
   findExistingDedupeKeys,
-  findRecipientEmail,
+  findAlertRecipient,
   insertPendingAlerts,
+  listAlertRecipients,
   listRetryableAlerts,
   markAlertFailed,
   markAlertSent,
   type AlertRecord,
+  type AlertRecipient,
   type PendingAlertInput,
 } from '../repositories/alertRepository.js';
 import { listActiveUsersByRoles } from '../repositories/userRepository.js';
 import { isEmailEnabled, logAlertToConsole, sendMail } from './mailer.js';
+import {
+  isGhlWhatsAppEnabled,
+  sendGhlWhatsAppMessage,
+} from './ghlWhatsAppService.js';
 
 const MAX_ATTEMPTS = 3;
 
@@ -103,8 +109,27 @@ export interface AlertDispatchResult {
   warningsCreated: number;
   overdueCreated: number;
   emailsSent: number;
+  whatsappSent: number;
   consoleAlerts: number;
   failedAlerts: number;
+}
+
+interface DeliveryResult {
+  emailsSent: number;
+  whatsappSent: number;
+  consoleAlerts: number;
+  failedAlerts: number;
+}
+
+export function resolveAlertChannel(recipient: AlertRecipient): AlertChannel {
+  if (
+    isGhlWhatsAppEnabled() &&
+    recipient.whatsappNotificationsEnabled &&
+    recipient.ghlContactId
+  ) {
+    return 'WHATSAPP';
+  }
+  return isEmailEnabled() ? 'EMAIL' : 'CONSOLE';
 }
 
 /**
@@ -116,6 +141,7 @@ export async function createAndDispatchAlerts(plans: AlertPlan[]): Promise<Alert
     warningsCreated: 0,
     overdueCreated: 0,
     emailsSent: 0,
+    whatsappSent: 0,
     consoleAlerts: 0,
     failedAlerts: 0,
   };
@@ -125,18 +151,27 @@ export async function createAndDispatchAlerts(plans: AlertPlan[]): Promise<Alert
   // Los gestores se consultan una sola vez, no una por orden atrasada.
   const managers = await listActiveUsersByRoles(['OWNER', 'ADMIN']);
   const managerIds = managers.map((manager) => manager.id);
+  const recipientIds = new Set(managerIds);
+  for (const plan of plans) {
+    if (plan.context.assigneeId) recipientIds.add(plan.context.assigneeId);
+  }
+  const recipientProfiles = new Map(
+    (await listAlertRecipients([...recipientIds])).map((recipient) => [recipient.id, recipient]),
+  );
 
   for (const plan of plans) {
     const recipients = mergeRecipients(managerIds, plan.context.assigneeId);
     const { subject, message } = buildAlertContent(plan.context, plan.alertType, plan.sla);
 
     for (const recipientUserId of recipients) {
+      const recipient = recipientProfiles.get(recipientUserId);
+      if (!recipient) continue;
       candidates.push({
         orderId: plan.context.orderId,
         stageHistoryId: plan.context.stageHistoryId,
         recipientUserId,
         alertType: plan.alertType,
-        channel: isEmailEnabled() ? 'EMAIL' : 'CONSOLE',
+        channel: resolveAlertChannel(recipient),
         dedupeKey: buildDedupeKey(
           plan.context.orderId,
           plan.context.stageHistoryId,
@@ -164,6 +199,7 @@ export async function createAndDispatchAlerts(plans: AlertPlan[]): Promise<Alert
 
   const dispatch = await dispatchAlerts(created);
   result.emailsSent += dispatch.emailsSent;
+  result.whatsappSent += dispatch.whatsappSent;
   result.consoleAlerts += dispatch.consoleAlerts;
   result.failedAlerts += dispatch.failedAlerts;
 
@@ -172,15 +208,16 @@ export async function createAndDispatchAlerts(plans: AlertPlan[]): Promise<Alert
 
 async function dispatchAlerts(
   records: AlertRecord[],
-): Promise<{ emailsSent: number; consoleAlerts: number; failedAlerts: number }> {
+): Promise<DeliveryResult> {
   let emailsSent = 0;
+  let whatsappSent = 0;
   let consoleAlerts = 0;
   let failedAlerts = 0;
 
   for (const alert of records) {
-    const recipient = await findRecipientEmail(alert.recipientUserId);
-    if (!recipient) {
-      await markAlertFailed(alert.id, 'El destinatario ya no existe.');
+    const recipient = await findAlertRecipient(alert.recipientUserId);
+    if (!recipient || !recipient.isActive) {
+      await markAlertFailed(alert.id, 'El destinatario no existe o esta desactivado.');
       failedAlerts += 1;
       continue;
     }
@@ -188,7 +225,16 @@ async function dispatchAlerts(
     const message = { to: recipient.email, subject: alert.subject, text: alert.message };
 
     try {
-      if (isEmailEnabled()) {
+      if (alert.channel === 'WHATSAPP') {
+        if (!recipient.whatsappNotificationsEnabled || !recipient.ghlContactId) {
+          throw new Error('El usuario no tiene un contacto de WhatsApp activo.');
+        }
+        await sendGhlWhatsAppMessage(
+          recipient.ghlContactId,
+          `${alert.subject}\n\n${alert.message}`,
+        );
+        whatsappSent += 1;
+      } else if (alert.channel === 'EMAIL') {
         await sendMail(message);
         emailsSent += 1;
       } else {
@@ -204,16 +250,19 @@ async function dispatchAlerts(
     }
   }
 
-  return { emailsSent, consoleAlerts, failedAlerts };
+  return { emailsSent, whatsappSent, consoleAlerts, failedAlerts };
 }
 
 /** Reintenta las alertas fallidas que aun tienen intentos disponibles. */
 export async function retryFailedAlerts(limit = 50): Promise<{
   emailsSent: number;
+  whatsappSent: number;
   consoleAlerts: number;
   failedAlerts: number;
 }> {
   const pending = await listRetryableAlerts(MAX_ATTEMPTS, limit);
-  if (pending.length === 0) return { emailsSent: 0, consoleAlerts: 0, failedAlerts: 0 };
+  if (pending.length === 0) {
+    return { emailsSent: 0, whatsappSent: 0, consoleAlerts: 0, failedAlerts: 0 };
+  }
   return dispatchAlerts(pending);
 }

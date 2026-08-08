@@ -37,6 +37,9 @@ export async function listUsers(options: { onlyActive?: boolean } = {}) {
       isActive: users.isActive,
       mustChangePassword: users.mustChangePassword,
       isPrimaryOwner: users.isPrimaryOwner,
+      whatsappPhone: users.whatsappPhone,
+      ghlContactId: users.ghlContactId,
+      whatsappNotificationsEnabled: users.whatsappNotificationsEnabled,
       lastLoginAt: users.lastLoginAt,
       createdAt: users.createdAt,
     })
@@ -51,7 +54,15 @@ export async function listActiveUsersByRoles(roles: Role[]) {
   const db = getDb();
   if (roles.length === 0) return [];
   return db
-    .select({ id: users.id, name: users.name, email: users.email, role: users.role })
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      whatsappPhone: users.whatsappPhone,
+      ghlContactId: users.ghlContactId,
+      whatsappNotificationsEnabled: users.whatsappNotificationsEnabled,
+    })
     .from(users)
     .where(and(eq(users.isActive, true), inArray(users.role, roles)));
 }
@@ -100,6 +111,9 @@ export interface CreateUserData {
   role: Role;
   mustChangePassword: boolean;
   isPrimaryOwner?: boolean;
+  whatsappPhone?: string | null;
+  ghlContactId?: string | null;
+  whatsappNotificationsEnabled?: boolean;
 }
 
 export async function insertUser(data: CreateUserData, exec: DbExecutor = getDb()) {
@@ -112,6 +126,9 @@ export async function insertUser(data: CreateUserData, exec: DbExecutor = getDb(
       role: data.role,
       mustChangePassword: data.mustChangePassword,
       isPrimaryOwner: data.isPrimaryOwner ?? false,
+      whatsappPhone: data.whatsappPhone ?? null,
+      ghlContactId: data.ghlContactId ?? null,
+      whatsappNotificationsEnabled: data.whatsappNotificationsEnabled ?? false,
     })
     .returning();
   return row!;
@@ -119,7 +136,15 @@ export async function insertUser(data: CreateUserData, exec: DbExecutor = getDb(
 
 export async function updateUserRow(
   id: string,
-  data: Partial<{ name: string; email: string; role: Role; isActive: boolean }>,
+  data: Partial<{
+    name: string;
+    email: string;
+    role: Role;
+    isActive: boolean;
+    whatsappPhone: string | null;
+    ghlContactId: string | null;
+    whatsappNotificationsEnabled: boolean;
+  }>,
   exec: DbExecutor = getDb(),
 ) {
   const [row] = await exec

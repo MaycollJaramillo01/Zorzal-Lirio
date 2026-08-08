@@ -168,12 +168,21 @@ export function useTeamMutations() {
       password: string;
       stageIds: string[];
       mustChangePassword: boolean;
+      whatsappPhone: string | null;
+      whatsappNotificationsEnabled: boolean;
     }) => apiFetch<{ users: TeamMember[] }>('/users', { method: 'POST', json: input })),
     onSuccess,
   });
 
   const updateUser = useMutation({
-    mutationFn: ((input: { id: string; name?: string; email?: string; role?: string }) => {
+    mutationFn: ((input: {
+      id: string;
+      name?: string;
+      email?: string;
+      role?: string;
+      whatsappPhone?: string | null;
+      whatsappNotificationsEnabled?: boolean;
+    }) => {
       const { id, ...rest } = input;
       return apiFetch<{ users: TeamMember[] }>(`/users/${id}`, { method: 'PATCH', json: rest });
     }),

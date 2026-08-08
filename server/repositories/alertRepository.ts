@@ -5,6 +5,16 @@ import type { AlertChannel, AlertType } from '../../shared/constants/enums.js';
 
 export type AlertRecord = typeof alerts.$inferSelect;
 
+export interface AlertRecipient {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  whatsappPhone: string | null;
+  ghlContactId: string | null;
+  whatsappNotificationsEnabled: boolean;
+}
+
 export function buildDedupeKey(
   orderId: string,
   stageHistoryId: string,
@@ -121,14 +131,41 @@ export async function listRecentAlerts(limit: number, exec: DbExecutor = getDb()
     .limit(limit);
 }
 
-export async function findRecipientEmail(
+export async function findAlertRecipient(
   userId: string,
   exec: DbExecutor = getDb(),
-): Promise<{ name: string; email: string } | null> {
+): Promise<AlertRecipient | null> {
   const [row] = await exec
-    .select({ name: users.name, email: users.email })
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      isActive: users.isActive,
+      whatsappPhone: users.whatsappPhone,
+      ghlContactId: users.ghlContactId,
+      whatsappNotificationsEnabled: users.whatsappNotificationsEnabled,
+    })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
   return row ?? null;
+}
+
+export async function listAlertRecipients(
+  userIds: string[],
+  exec: DbExecutor = getDb(),
+): Promise<AlertRecipient[]> {
+  if (userIds.length === 0) return [];
+  return exec
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      isActive: users.isActive,
+      whatsappPhone: users.whatsappPhone,
+      ghlContactId: users.ghlContactId,
+      whatsappNotificationsEnabled: users.whatsappNotificationsEnabled,
+    })
+    .from(users)
+    .where(and(eq(users.isActive, true), inArray(users.id, userIds)));
 }

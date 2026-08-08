@@ -23,6 +23,80 @@ import { deleteSessionsForUser } from '../repositories/sessionRepository.js';
 import { hashPassword } from './authService.js';
 import { recordAudit } from './auditService.js';
 import { loadActiveOrderCards } from './orderService.js';
+import {
+  findGhlContactByPhone,
+  GhlApiError,
+  isGhlWhatsAppEnabled,
+} from './ghlWhatsAppService.js';
+
+interface WhatsappSetupInput {
+  whatsappPhone?: string | null;
+  whatsappNotificationsEnabled?: boolean;
+}
+
+interface WhatsappSetupCurrent {
+  whatsappPhone: string | null;
+  ghlContactId: string | null;
+  whatsappNotificationsEnabled: boolean;
+}
+
+type WhatsappSetupPatch = Partial<WhatsappSetupCurrent>;
+
+async function resolveWhatsappSetup(
+  input: WhatsappSetupInput,
+  current?: WhatsappSetupCurrent,
+): Promise<WhatsappSetupPatch> {
+  const hasWhatsappChange =
+    input.whatsappPhone !== undefined || input.whatsappNotificationsEnabled !== undefined;
+  if (!hasWhatsappChange) return {};
+
+  const phone = input.whatsappPhone !== undefined ? input.whatsappPhone : current?.whatsappPhone ?? null;
+  const enabled =
+    input.whatsappNotificationsEnabled ?? current?.whatsappNotificationsEnabled ?? false;
+
+  if (!phone) {
+    if (enabled) {
+      throw httpErrors.validation(undefined, 'Escribe el WhatsApp del usuario antes de activarlo.');
+    }
+    return {
+      whatsappPhone: null,
+      ghlContactId: null,
+      whatsappNotificationsEnabled: false,
+    };
+  }
+
+  if (!enabled) {
+    return {
+      whatsappPhone: phone,
+      whatsappNotificationsEnabled: false,
+      ...(phone !== current?.whatsappPhone ? { ghlContactId: null } : {}),
+    };
+  }
+
+  if (!isGhlWhatsAppEnabled()) {
+    throw httpErrors.validation(undefined, 'La integracion de WhatsApp no esta habilitada.');
+  }
+
+  try {
+    const contact = await findGhlContactByPhone(phone);
+    if (!contact) {
+      throw httpErrors.validation(
+        undefined,
+        `No existe un contacto interno en HighLevel con el numero ${phone}.`,
+      );
+    }
+    return {
+      whatsappPhone: contact.phone,
+      ghlContactId: contact.id,
+      whatsappNotificationsEnabled: true,
+    };
+  } catch (error) {
+    if (error instanceof GhlApiError) {
+      throw httpErrors.validation(undefined, error.message);
+    }
+    throw error;
+  }
+}
 
 export async function toSessionUser(user: AuthUser): Promise<SessionUser> {
   const focusMap = await getStageFocusByUsers([user.id]);
@@ -62,6 +136,8 @@ export async function listTeam(): Promise<TeamMember[]> {
     lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : null,
     createdAt: user.createdAt.toISOString(),
     isPrimaryOwner: user.isPrimaryOwner,
+    whatsappPhone: user.whatsappPhone,
+    whatsappNotificationsEnabled: user.whatsappNotificationsEnabled,
     stageFocus: focusMap.get(user.id) ?? [],
     activeOrders: active.get(user.id) ?? 0,
     overdueOrders: overdue.get(user.id) ?? 0,
@@ -106,6 +182,7 @@ export async function createTeamUser(
   if (await isEmailTaken(input.email)) throw httpErrors.emailTaken();
 
   const passwordHash = await hashPassword(input.password);
+  const whatsappSetup = await resolveWhatsappSetup(input);
 
   await getDb().transaction(async (tx) => {
     const user = await insertUser(
@@ -115,6 +192,7 @@ export async function createTeamUser(
         passwordHash,
         role: input.role,
         mustChangePassword: input.mustChangePassword,
+        ...whatsappSetup,
       },
       tx,
     );
@@ -127,7 +205,13 @@ export async function createTeamUser(
         action: 'USER_CREATED',
         entityType: 'user',
         entityId: user.id,
-        afterData: { name: user.name, email: user.email, role: user.role },
+        afterData: {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          whatsappPhone: user.whatsappPhone,
+          whatsappNotificationsEnabled: user.whatsappNotificationsEnabled,
+        },
         ipAddress,
       },
       tx,
@@ -153,9 +237,10 @@ export async function updateTeamUser(
     throw httpErrors.forbidden('Un administrador no puede otorgar el rol Dueno.');
   }
   if (input.email && (await isEmailTaken(input.email, userId))) throw httpErrors.emailTaken();
+  const whatsappSetup = await resolveWhatsappSetup(input, target);
 
   await getDb().transaction(async (tx) => {
-    const updated = await updateUserRow(userId, input, tx);
+    const updated = await updateUserRow(userId, { ...input, ...whatsappSetup }, tx);
     if (!updated) throw httpErrors.notFound('El usuario no existe.');
     await recordAudit(
       {
@@ -163,8 +248,14 @@ export async function updateTeamUser(
         action: 'USER_UPDATED',
         entityType: 'user',
         entityId: userId,
-        beforeData: { name: target.name, email: target.email, role: target.role },
-        afterData: input,
+        beforeData: {
+          name: target.name,
+          email: target.email,
+          role: target.role,
+          whatsappPhone: target.whatsappPhone,
+          whatsappNotificationsEnabled: target.whatsappNotificationsEnabled,
+        },
+        afterData: { ...input, ...whatsappSetup },
         ipAddress,
       },
       tx,

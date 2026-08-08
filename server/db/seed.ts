@@ -32,7 +32,7 @@ const SEED_USERS: SeedUser[] = [
   {
     name: 'Administrador',
     email: 'admin@zorzallirio.local',
-    password: 'admin123',
+    password: 'ZL-Admin!HN_2026#K7v9@Q2x',
     role: 'ADMIN',
     focus: STAGE_DEFINITIONS.map((stage) => stage.code),
   },

@@ -2,7 +2,7 @@ import { expect, type Page } from '@playwright/test';
 
 export const USERS = {
   owner: { email: 'owner@zorzallirio.local', password: 'owner123' },
-  admin: { email: 'admin@zorzallirio.local', password: 'admin123' },
+  admin: { email: 'admin@zorzallirio.local', password: 'ZL-Admin!HN_2026#K7v9@Q2x' },
   compras: { email: 'compras@zorzallirio.local', password: 'planta123' },
   taller: { email: 'taller@zorzallirio.local', password: 'planta123' },
 } as const;

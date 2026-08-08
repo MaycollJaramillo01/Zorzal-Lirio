@@ -182,5 +182,33 @@ describe('createUserSchema', () => {
     expect(result.stageIds).toEqual([]);
     expect(result.mustChangePassword).toBe(true);
     expect(result.email).toBe('taller.lopez@example.com');
+    expect(result.whatsappPhone).toBeNull();
+    expect(result.whatsappNotificationsEnabled).toBe(false);
+  });
+
+  it('normaliza el WhatsApp interno al formato E.164', () => {
+    const result = createUserSchema.parse({
+      name: 'Responsable de envios',
+      email: 'envios@example.com',
+      role: 'PLANT',
+      password: 'clave-segura-1',
+      whatsappPhone: '+504 8832-8459',
+      whatsappNotificationsEnabled: true,
+    });
+
+    expect(result.whatsappPhone).toBe('+50488328459');
+    expect(result.whatsappNotificationsEnabled).toBe(true);
+  });
+
+  it('rechaza numeros de WhatsApp sin codigo internacional', () => {
+    const result = createUserSchema.safeParse({
+      name: 'Responsable de envios',
+      email: 'envios@example.com',
+      role: 'PLANT',
+      password: 'clave-segura-1',
+      whatsappPhone: '88328459',
+    });
+
+    expect(result.success).toBe(false);
   });
 });

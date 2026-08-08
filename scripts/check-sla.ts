@@ -22,6 +22,7 @@ async function main(): Promise<number> {
   console.log(`Alertas warning creadas.: ${summary.warningsCreated}`);
   console.log(`Alertas overdue creadas.: ${summary.overdueCreated}`);
   console.log(`Correos enviados........: ${summary.emailsSent}`);
+  console.log(`WhatsApp enviados.......: ${summary.whatsappSent}`);
   console.log(`Alertas en consola......: ${summary.consoleAlerts}`);
   console.log(`Alertas fallidas........: ${summary.failedAlerts}`);
   if (summary.skipped) console.log(`Omitida.................: ${summary.reason}`);

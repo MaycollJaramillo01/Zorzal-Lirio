@@ -157,7 +157,7 @@ Migracion inicial: `server/db/migrations/0000_init.sql`. Esquema Drizzle:
 | `orders` | La orden de produccion | `order_code` unico, `version` (concurrencia optimista), `is_archived`, `closed_at` |
 | `order_stage_history` | Historial inmutable por tramo | **Indice unico parcial**: un solo tramo abierto por orden (`exited_at is null`) |
 | `order_notes` | Notas de la orden | Se ocultan (`is_hidden`), nunca se borran |
-| `alerts` | Alertas de SLA emitidas | `dedupe_key` unica; `status` PENDING/SENT/FAILED; `attempt_count` |
+| `alerts` | Alertas de SLA emitidas | `dedupe_key` unica; canal WHATSAPP/EMAIL/CONSOLE; `status` PENDING/SENT/FAILED; `attempt_count` |
 | `sessions` | Sesiones activas | Solo el **hash** del token; `expires_at`, IP y user agent |
 | `audit_logs` | Bitacora | `action`, `before_data`, `after_data`, `metadata` (JSONB), IP |
 | `system_settings` | Configuracion general | `key` / `value` JSONB |
@@ -302,8 +302,9 @@ Un mismo resumen (`SlaCheckSummary`) sale tanto por HTTP como por consola.
 
 ### 6.2 Destinatarios y deduplicacion
 
-Destinatarios de cada alerta: **el responsable actual + todos los OWNER y ADMIN
-activos**, sin repetir (`mergeRecipients`). Los gestores se consultan una sola
+Destinatarios de cada alerta: **usuarios internos de Zorzal Lirio OS** —el responsable actual +
+todos los OWNER y ADMIN activos—, sin repetir (`mergeRecipients`). Nunca se seleccionan clientes.
+Los gestores se consultan una sola
 vez por corrida, no una vez por orden atrasada.
 
 La deduplicacion es estructural: `dedupe_key = order_id + stage_history_id +
@@ -315,6 +316,8 @@ alert_type + recipient_user_id` con indice unico. Consecuencias:
 
 ### 6.3 Canal
 
+- Usuario con WhatsApp activo y contacto GHL validado → API privada de HighLevel,
+  canal `WHATSAPP`. La aplicacion no crea ni mezcla contactos de clientes.
 - `EMAIL_ENABLED=true` + SMTP configurado → correo con Nodemailer, canal `EMAIL`.
 - Apagado (por defecto) → log estructurado de Pino, canal `CONSOLE`, visible en
   los logs de Vercel. No se pierde nada: la alerta igual queda en la tabla.
@@ -451,6 +454,9 @@ Puntos de diseno:
 | `CRON_SECRET` | **si en prod** | minimo 16 caracteres |
 | `SMTP_*` | no | Solo si `EMAIL_ENABLED=true` (entonces `SMTP_HOST` pasa a ser obligatorio) |
 | `EMAIL_ENABLED` | no | `false` por defecto: alertas al log |
+| `GHL_WHATSAPP_ENABLED` | no | activa el canal para usuarios internos configurados |
+| `GHL_PRIVATE_INTEGRATION_TOKEN` | si al activar WhatsApp | secreto privado de la subcuenta; nunca en Git |
+| `GHL_LOCATION_ID` | si al activar WhatsApp | subcuenta de HighLevel |
 | `SEED_DEFAULT_USERS` | no | `true` por defecto |
 | `LOG_LEVEL` | no | `info` |
 
@@ -462,7 +468,7 @@ produccion.
 | Rol | Correo | Contrasena | Enfoque |
 | --- | --- | --- | --- |
 | OWNER | `owner@zorzallirio.local` | `owner123` | todas (dueno principal) |
-| ADMIN | `admin@zorzallirio.local` | `admin123` | todas |
+| ADMIN | `admin@zorzallirio.local` | `ZL-Admin!HN_2026#K7v9@Q2x` | todas |
 | PLANT | `compras@zorzallirio.local` | `planta123` | Compra de tela |
 | PLANT | `taller@zorzallirio.local` | `planta123` | En taller, Bordado |
 | PLANT | `envio@zorzallirio.local` | `planta123` | Envio, Cobro |

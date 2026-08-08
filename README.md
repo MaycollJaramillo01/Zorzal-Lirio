@@ -181,6 +181,9 @@ interactivas reales** (necesarias para las transiciones de etapa).
 | `CRON_SECRET` | **si en produccion** | Minimo 16 caracteres. Protege `GET /api/cron/sla`. |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | no | Configuracion SMTP. |
 | `EMAIL_ENABLED` | no | `true` envia correos; `false` escribe las alertas en el log. |
+| `GHL_WHATSAPP_ENABLED` | no | Activa WhatsApp para usuarios internos configurados en Equipo. |
+| `GHL_PRIVATE_INTEGRATION_TOKEN` | si al activar WhatsApp | Token privado de subcuenta; nunca se guarda en Git. |
+| `GHL_LOCATION_ID` | si al activar WhatsApp | Identificador de la subcuenta HighLevel. |
 | `SEED_DEFAULT_USERS` | no | `true` crea los cinco usuarios iniciales en el seed. |
 | `LOG_LEVEL` | no | Nivel de Pino (`info` por defecto). |
 
@@ -270,7 +273,7 @@ Respuesta esperada:
 | Rol | Nombre | Correo | Contrasena | Enfoque |
 | --- | --- | --- | --- | --- |
 | OWNER | Dueno Zorzal Lirio | `owner@zorzallirio.local` | `owner123` | Todas |
-| ADMIN | Administrador | `admin@zorzallirio.local` | `admin123` | Todas |
+| ADMIN | Administrador | `admin@zorzallirio.local` | `ZL-Admin!HN_2026#K7v9@Q2x` | Todas |
 | PLANT | Responsable de compras | `compras@zorzallirio.local` | `planta123` | Compra de tela |
 | PLANT | Responsable de taller | `taller@zorzallirio.local` | `planta123` | En taller y Bordado |
 | PLANT | Responsable de envios | `envio@zorzallirio.local` | `planta123` | Envio y Cobro |
@@ -347,13 +350,15 @@ El SLA de la primera etapa corre desde la **fecha de recepcion de la orden de co
 el momento en que se captura. Asi una OC registrada con retraso aparece vencida de inmediato.
 
 **Alertas.** Cuando una orden entra en `WARNING` u `OVERDUE` se notifica al responsable actual y
-a todos los `OWNER` y `ADMIN` activos. Cada alerta se guarda en la tabla `alerts` con una clave
+a todos los `OWNER` y `ADMIN` activos. Son usuarios de Zorzal Lirio OS, nunca clientes. Cada alerta
+se guarda en la tabla `alerts` con una clave
 unica `order_id + stage_history_id + alert_type + recipient_user_id`, por lo que **nunca se envia
 duplicada**, aunque el cron corra varias veces. Las alertas fallidas se reintentan hasta 3 veces
 en ciclos posteriores.
 
-Con `EMAIL_ENABLED=false` las alertas se escriben como log estructurado (visible en la consola de
-Vercel) y se registran con canal `CONSOLE`.
+Si el usuario tiene WhatsApp activo en **Equipo**, su telefono se valida contra el contacto ya
+existente en HighLevel y la alerta usa el canal `WHATSAPP`. No se crean contactos automaticamente.
+Los demas destinatarios usan correo si esta habilitado o log estructurado (`CONSOLE`) como respaldo.
 
 Los tiempos se configuran en dias desde la seccion **SLA**, pero se almacenan en minutos.
 
@@ -467,6 +472,9 @@ npm run build
    CRON_SECRET
    NODE_ENV=production
    EMAIL_ENABLED=false
+   GHL_WHATSAPP_ENABLED=true
+   GHL_PRIVATE_INTEGRATION_TOKEN=...
+   GHL_LOCATION_ID=...
    APP_TIMEZONE=America/Tegucigalpa
    ```
 

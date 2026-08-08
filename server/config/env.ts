@@ -32,10 +32,30 @@ const envSchema = z
     SMTP_FROM: z.string().trim().default('Zorzal Lirio OS <notificaciones@example.com>'),
 
     EMAIL_ENABLED: envBool(false),
+    GHL_WHATSAPP_ENABLED: envBool(false),
+    GHL_PRIVATE_INTEGRATION_TOKEN: z.string().trim().optional(),
+    GHL_LOCATION_ID: z.string().trim().optional(),
     SEED_DEFAULT_USERS: envBool(true),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   })
   .superRefine((value, ctx) => {
+    if (value.GHL_WHATSAPP_ENABLED) {
+      if (!value.GHL_PRIVATE_INTEGRATION_TOKEN) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['GHL_PRIVATE_INTEGRATION_TOKEN'],
+          message: 'GHL_PRIVATE_INTEGRATION_TOKEN es obligatorio cuando WhatsApp esta activo.',
+        });
+      }
+      if (!value.GHL_LOCATION_ID) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['GHL_LOCATION_ID'],
+          message: 'GHL_LOCATION_ID es obligatorio cuando WhatsApp esta activo.',
+        });
+      }
+    }
+
     if (value.NODE_ENV !== 'production') return;
 
     const required: Array<[string, unknown]> = [
@@ -104,6 +124,10 @@ export const env = {
   migrationDatabaseUrl: value.DATABASE_URL_UNPOOLED ?? value.DATABASE_URL ?? '',
   hasDatabase: Boolean(value.DATABASE_URL),
   smtpEnabled: value.EMAIL_ENABLED && Boolean(value.SMTP_HOST),
+  ghlWhatsAppEnabled:
+    value.GHL_WHATSAPP_ENABLED &&
+    Boolean(value.GHL_PRIVATE_INTEGRATION_TOKEN) &&
+    Boolean(value.GHL_LOCATION_ID),
 } as const;
 
 export type Env = typeof env;

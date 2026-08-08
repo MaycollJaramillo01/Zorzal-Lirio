@@ -132,6 +132,7 @@ describeWithDb('revision de SLA, alertas y cron', () => {
     expect(typeof summary.warningsCreated).toBe('number');
     expect(typeof summary.overdueCreated).toBe('number');
     expect(typeof summary.emailsSent).toBe('number');
+    expect(typeof summary.whatsappSent).toBe('number');
     expect(typeof summary.consoleAlerts).toBe('number');
     expect(typeof summary.failedAlerts).toBe('number');
   });

@@ -31,6 +31,7 @@ export async function runSlaCheck(options: SlaCheckOptions): Promise<SlaCheckSum
       warningsCreated: 0,
       overdueCreated: 0,
       emailsSent: 0,
+      whatsappSent: 0,
       consoleAlerts: 0,
       failedAlerts: 0,
       skipped: true,
@@ -45,6 +46,7 @@ export async function runSlaCheck(options: SlaCheckOptions): Promise<SlaCheckSum
     warningsCreated: 0,
     overdueCreated: 0,
     emailsSent: 0,
+    whatsappSent: 0,
     consoleAlerts: 0,
     failedAlerts: 0,
   };
@@ -91,6 +93,7 @@ export async function runSlaCheck(options: SlaCheckOptions): Promise<SlaCheckSum
       warningsCreated: dispatch.warningsCreated,
       overdueCreated: dispatch.overdueCreated,
       emailsSent: dispatch.emailsSent + retried.emailsSent,
+      whatsappSent: dispatch.whatsappSent + retried.whatsappSent,
       consoleAlerts: dispatch.consoleAlerts + retried.consoleAlerts,
       failedAlerts: dispatch.failedAlerts + retried.failedAlerts,
     };

@@ -3,6 +3,13 @@ import { ROLES } from '../constants/enums.js';
 import { emailSchema, passwordSchema, uuidSchema } from './common.js';
 
 const nameSchema = z.string().trim().min(2, 'El nombre es muy corto.').max(120);
+const whatsappPhoneSchema = z
+  .string()
+  .trim()
+  .transform((value) => value.replace(/[\s()-]/g, ''))
+  .refine((value) => /^\+[1-9]\d{7,14}$/.test(value), {
+    message: 'Usa formato internacional, por ejemplo +50488328459.',
+  });
 
 export const createUserSchema = z.object({
   name: nameSchema,
@@ -11,6 +18,8 @@ export const createUserSchema = z.object({
   password: passwordSchema,
   stageIds: z.array(uuidSchema).max(20).default([]),
   mustChangePassword: z.boolean().default(true),
+  whatsappPhone: whatsappPhoneSchema.nullable().default(null),
+  whatsappNotificationsEnabled: z.boolean().default(false),
 });
 
 export const updateUserSchema = z
@@ -18,6 +27,8 @@ export const updateUserSchema = z
     name: nameSchema.optional(),
     email: emailSchema.optional(),
     role: z.enum(ROLES).optional(),
+    whatsappPhone: whatsappPhoneSchema.nullable().optional(),
+    whatsappNotificationsEnabled: z.boolean().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'No hay cambios que guardar.',
