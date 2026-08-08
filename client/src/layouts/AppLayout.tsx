@@ -58,147 +58,141 @@ export function AppLayout() {
 
   const isCurrent = (to: string, isActive: boolean) => {
     if (!isActive) return false;
-    const query = to.includes('?') ? `?${to.split('?')[1]}` : '';
-    return query ? location.search === query : !location.search;
+    const [path, query] = to.split('?');
+    if (query) return location.search === `?${query}`;
+    const matchingQueryItem = items.some(
+      (item) => item.to.startsWith(`${path}?`) && location.search === `?${item.to.split('?')[1]}`,
+    );
+    return !matchingQueryItem;
   };
 
   return (
-    <div className="min-h-screen w-full bg-background">
-      <a href="#contenido-principal" className="skip-link">
-        Ir al contenido
-      </a>
+    <div className="min-h-screen w-full bg-background lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
+      <a href="#contenido-principal" className="skip-link">Ir al contenido</a>
 
-      <header className="sticky top-0 z-40 border-b border-line/70 bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto max-w-[100rem] px-3 py-3 sm:px-5">
-          <div className="flex min-h-16 items-center gap-3 rounded-[1.35rem] border border-line bg-surface px-3 shadow-[var(--shadow-tile)] sm:px-4">
-            <Link to="/dashboard" className="flex shrink-0 items-center gap-3 rounded-xl py-2 pr-2">
-              <span className="flex h-10 items-center rounded-xl bg-white px-2.5 ring-1 ring-line">
-                <img src="/logo.webp" alt="Zorzal Lirio OS" className="h-6 w-auto" />
-              </span>
-              <span className="hidden border-l border-line pl-3 leading-tight 2xl:block">
-                <span className="block font-display text-sm font-semibold text-ink">Producción</span>
-                <span className="block text-[10px] font-semibold tracking-[0.12em] text-muted uppercase">Centro operativo</span>
-              </span>
+      {menuOpen ? (
+        <button
+          type="button"
+          aria-label="Cerrar navegación"
+          className="fixed inset-0 z-40 bg-brand-900/45 backdrop-blur-sm lg:hidden"
+          onClick={() => setMenuOpen(false)}
+        />
+      ) : null}
+
+      <aside
+        id="menu-principal"
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-hidden border-r border-white/10 bg-brand-900 text-white shadow-[var(--shadow-float)] transition-transform duration-300 lg:sticky lg:top-0 lg:z-30 lg:h-screen lg:w-auto lg:translate-x-0',
+          menuOpen ? 'translate-x-0' : '-translate-x-full',
+        )}
+      >
+        <div className="zl-grid-pattern border-b border-white/10 p-4 pb-5">
+          <div className="flex items-center justify-between gap-3">
+            <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="flex h-14 items-center rounded-2xl bg-white px-3.5 shadow-sm">
+              <img src="/logo.webp" alt="Zorzal Lirio OS" className="h-7 w-auto" />
             </Link>
-
-            <nav aria-label="Navegación principal" className="ml-1 hidden min-w-0 flex-1 items-center gap-1 xl:flex">
-              {items.map((item) => (
-                <NavLink
-                  key={`${item.to}-${item.label}`}
-                  to={item.to}
-                  end={item.end}
-                  className={({ isActive }) =>
-                    cn(
-                      'group relative inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold whitespace-nowrap text-muted hover:bg-surface-muted hover:text-ink',
-                      isCurrent(item.to, isActive) && 'bg-brand-900 text-white hover:bg-brand-900 hover:text-white',
-                    )
-                  }
-                >
-                  <Icon name={item.icon} className="size-3.5" />
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
-
-            <div className="ml-auto hidden shrink-0 items-center gap-2 xl:flex">
-              <Link
-                to="/profile"
-                className={cn(
-                  'flex items-center gap-2 rounded-xl border border-transparent px-2 py-1.5 hover:border-line hover:bg-background',
-                  location.pathname === '/profile' && 'border-line bg-background',
-                )}
-              >
-                <Avatar user={session} size="sm" />
-                <span className="hidden max-w-28 leading-tight 2xl:block">
-                  <span className="block truncate text-xs font-semibold text-ink">{session.name}</span>
-                  <span className="block text-[10px] text-muted">{ROLE_LABELS[session.role]}</span>
-                </span>
-              </Link>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={logout.isPending}
-                onClick={() => logout.mutate()}
-              >
-                Salir
-              </Button>
-            </div>
-
             <Button
               variant="ghost"
               size="sm"
-              className="ml-auto xl:hidden"
-              aria-label={menuOpen ? 'Cerrar navegación' : 'Abrir navegación'}
-              aria-expanded={menuOpen}
-              aria-controls="menu-principal"
-              onClick={() => setMenuOpen((open) => !open)}
+              className="text-white hover:bg-white/10 lg:hidden"
+              aria-label="Cerrar navegación"
+              onClick={() => setMenuOpen(false)}
             >
-              <Icon name={menuOpen ? 'close' : 'menu'} className="size-5" />
+              <Icon name="close" className="size-5" />
             </Button>
           </div>
+          <p className="mt-4 text-[10px] font-bold tracking-[0.16em] text-gold-500 uppercase">Centro operativo</p>
+          <p className="mt-1 font-display text-lg font-semibold text-white">Control de producción</p>
+        </div>
 
-          <div
-            id="menu-principal"
+        <nav aria-label="Navegación principal" className="zl-scroll flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">
+          <p className="px-3 pt-2 pb-1 text-[10px] font-bold tracking-[0.14em] text-white/35 uppercase">Navegación</p>
+          {items.map((item) => (
+            <NavLink
+              key={`${item.to}-${item.label}`}
+              to={item.to}
+              end={item.end}
+              onClick={() => setMenuOpen(false)}
+              className={({ isActive }) =>
+                cn(
+                  'group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/65 hover:bg-white/8 hover:text-white',
+                  isCurrent(item.to, isActive) && 'bg-gold-500 text-brand-900 shadow-sm hover:bg-gold-500 hover:text-brand-900',
+                )
+              }
+            >
+              <span className="flex size-8 items-center justify-center rounded-lg bg-white/7 group-hover:bg-white/10">
+                <Icon name={item.icon} />
+              </span>
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="border-t border-white/10 p-3">
+          <Link
+            to="/profile"
+            onClick={() => setMenuOpen(false)}
             className={cn(
-              'mt-2 rounded-[1.35rem] border border-line bg-surface p-2 shadow-[var(--shadow-float)] xl:hidden',
-              menuOpen ? 'block' : 'hidden',
+              'flex items-center gap-3 rounded-xl p-2.5 hover:bg-white/8',
+              location.pathname === '/profile' && 'bg-white/10',
             )}
           >
-            <nav aria-label="Navegación móvil" className="grid gap-1 sm:grid-cols-2">
-              {items.map((item) => (
-                <NavLink
-                  key={`${item.to}-${item.label}`}
-                  to={item.to}
-                  end={item.end}
-                  onClick={() => setMenuOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-surface-muted hover:text-ink',
-                      isCurrent(item.to, isActive) && 'bg-brand-900 text-white hover:bg-brand-900 hover:text-white',
-                    )
-                  }
-                >
-                  <Icon name={item.icon} />
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
-            <div className="mt-2 flex items-center gap-3 border-t border-line px-2 pt-3 pb-1">
-              <Avatar user={session} size="sm" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-ink">{session.name}</p>
-                <p className="text-[11px] text-muted">{ROLE_LABELS[session.role]}</p>
-              </div>
-              <Link to="/profile" onClick={() => setMenuOpen(false)} className="text-xs font-semibold text-brand-700">
-                Perfil
-              </Link>
-              <Button variant="ghost" size="sm" disabled={logout.isPending} onClick={() => logout.mutate()}>
-                Salir
-              </Button>
-            </div>
-          </div>
+            <Avatar user={session} size="sm" />
+            <span className="min-w-0 flex-1 leading-tight">
+              <span className="block truncate text-xs font-semibold text-white">{session.name}</span>
+              <span className="mt-0.5 block text-[10px] text-white/45">{ROLE_LABELS[session.role]}</span>
+            </span>
+            <Icon name="profile" className="text-white/40" />
+          </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-1 w-full justify-start text-white/60 hover:bg-white/8 hover:text-white"
+            disabled={logout.isPending}
+            onClick={() => logout.mutate()}
+          >
+            Salir del sistema
+          </Button>
         </div>
-      </header>
+      </aside>
 
-      <div className="mx-auto max-w-[100rem] px-4 pt-3 sm:px-6">
-        <nav aria-label="Ruta de navegación" className="hidden text-[11px] font-medium text-muted sm:block">
-          <ol className="flex items-center gap-1.5">
-            <li>
-              <Link to="/dashboard" className="hover:text-ink">Inicio</Link>
-            </li>
-            {crumbs.map((crumb) => (
-              <li key={crumb.path} className="flex items-center gap-1.5">
-                <span aria-hidden="true" className="text-brand-300">/</span>
-                <Link to={crumb.path} className="hover:text-ink">{crumb.label}</Link>
-              </li>
-            ))}
-          </ol>
-        </nav>
+      <div className="min-w-0">
+        <header className="sticky top-0 z-30 border-b border-line/70 bg-background/90 px-3 py-3 backdrop-blur-xl lg:hidden">
+          <div className="flex min-h-14 items-center justify-between rounded-[1.25rem] border border-line bg-surface px-3 shadow-[var(--shadow-tile)]">
+            <Link to="/dashboard" className="flex h-10 items-center rounded-xl bg-white px-2.5 ring-1 ring-line">
+              <img src="/logo.webp" alt="Zorzal Lirio OS" className="h-6 w-auto" />
+            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label="Abrir navegación"
+              aria-expanded={menuOpen}
+              aria-controls="menu-principal"
+              onClick={() => setMenuOpen(true)}
+            >
+              <Icon name="menu" className="size-5" />
+            </Button>
+          </div>
+        </header>
+
+        <div className="mx-auto max-w-[100rem] px-4 pt-4 sm:px-6">
+          <nav aria-label="Ruta de navegación" className="hidden text-[11px] font-medium text-muted sm:block">
+            <ol className="flex items-center gap-1.5">
+              <li><Link to="/dashboard" className="hover:text-ink">Inicio</Link></li>
+              {crumbs.map((crumb) => (
+                <li key={crumb.path} className="flex items-center gap-1.5">
+                  <span aria-hidden="true" className="text-brand-300">/</span>
+                  <Link to={crumb.path} className="hover:text-ink">{crumb.label}</Link>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </div>
+
+        <main id="contenido-principal" className="mx-auto min-w-0 max-w-[100rem] px-4 pt-5 pb-12 sm:px-6 sm:pt-6">
+          <Outlet />
+        </main>
       </div>
-
-      <main id="contenido-principal" className="mx-auto min-w-0 max-w-[100rem] px-4 pt-5 pb-12 sm:px-6 sm:pt-6">
-        <Outlet />
-      </main>
     </div>
   );
 }
