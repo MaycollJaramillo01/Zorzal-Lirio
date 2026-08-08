@@ -13,7 +13,7 @@
 ## 1. Que es
 
 **Zorzal Lirio OS** es el sistema operativo interno de un taller de confeccion de
-uniformes en Nicaragua. Controla el ciclo de vida completo de cada orden de
+uniformes en Honduras. Controla el ciclo de vida completo de cada orden de
 compra, desde que el cliente la entrega hasta que se cobra y se cierra.
 
 No es un ERP ni un CRM: es una sola cosa bien hecha — **saber donde esta cada
@@ -35,7 +35,7 @@ Problemas concretos que resuelve:
 espanol. El codigo y los comentarios tambien (sin tildes, convencion del repo).
 
 **Zona horaria:** todo se **almacena en UTC** y se **muestra en
-`America/Managua`** (`APP_TIMEZONE`).
+`America/Tegucigalpa`** (`APP_TIMEZONE`).
 
 ---
 
@@ -323,7 +323,7 @@ alert_type + recipient_user_id` con indice unico. Consecuencias:
 
 | Disparador | Como |
 | --- | --- |
-| Automatico | Cron de Vercel, `0 14 * * *` UTC = **8:00 a. m. de Managua** |
+| Automatico | Cron de Vercel, `0 14 * * *` UTC = **8:00 a. m. de Tegucigalpa** |
 | Manual (HTTP) | `GET /api/cron/sla` con `Authorization: Bearer ${CRON_SECRET}` (401 sin el) |
 | Manual (CLI) | `npm run check:sla`, imprime resumen y devuelve exit code |
 
@@ -407,7 +407,7 @@ Puntos de diseno:
 - **Accesibilidad:** el estado de SLA se comunica con texto ademas de color
   (`describeSla()` → "Atrasado por 3 d 4 h"), con pruebas que lo verifican.
 - **Fechas:** el frontend nunca formatea a mano; usa `shared/lib/datetime.ts`,
-  que ancla las fechas de calendario al mediodia UTC para que Managua (UTC-6) no
+  que ancla las fechas de calendario al mediodia UTC para que Tegucigalpa (UTC-6) no
   muestre el dia anterior.
 - **Guards:** `ProtectedRoute` y `ManagerRoute` en `routes/guards.tsx`; ocultar
   un enlace nunca sustituye la autorizacion del servidor.
@@ -446,7 +446,7 @@ Puntos de diseno:
 | `DATABASE_URL` | **si en prod** | Cadena **pooled** de Neon (con `-pooler`) |
 | `DATABASE_URL_UNPOOLED` | recomendada | Cadena directa, la usa drizzle-kit |
 | `APP_URL` | **si en prod** | CORS y enlaces de las alertas |
-| `APP_TIMEZONE` | no | `America/Managua` |
+| `APP_TIMEZONE` | no | `America/Tegucigalpa` |
 | `SESSION_SECRET` | **si en prod** | minimo 32 caracteres |
 | `CRON_SECRET` | **si en prod** | minimo 16 caracteres |
 | `SMTP_*` | no | Solo si `EMAIL_ENABLED=true` (entonces `SMTP_HOST` pasa a ser obligatorio) |

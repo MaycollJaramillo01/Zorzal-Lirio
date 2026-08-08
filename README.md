@@ -5,7 +5,7 @@ Sistema operativo interno para controlar de principio a fin la produccion de uni
 tiempos SLA, alertas automaticas y reportes operativos.
 
 Toda la interfaz esta en espanol. Las fechas se **almacenan en UTC** y se **muestran en
-`America/Managua`**.
+`America/Tegucigalpa`**.
 
 ---
 
@@ -176,7 +176,7 @@ interactivas reales** (necesarias para las transiciones de etapa).
 | `DATABASE_URL` | **si en produccion** | Cadena pooled de Neon, usada por la aplicacion. |
 | `DATABASE_URL_UNPOOLED` | recomendada | Cadena directa, usada por `drizzle-kit`. |
 | `APP_URL` | **si en produccion** | URL publica. Se usa en CORS y en los enlaces de las alertas. |
-| `APP_TIMEZONE` | no | Zona de presentacion. Por defecto `America/Managua`. |
+| `APP_TIMEZONE` | no | Zona de presentacion. Por defecto `America/Tegucigalpa`. |
 | `SESSION_SECRET` | **si en produccion** | Minimo 32 caracteres. Firma el hash de los tokens de sesion. |
 | `CRON_SECRET` | **si en produccion** | Minimo 16 caracteres. Protege `GET /api/cron/sla`. |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | no | Configuracion SMTP. |
@@ -467,7 +467,7 @@ npm run build
    CRON_SECRET
    NODE_ENV=production
    EMAIL_ENABLED=false
-   APP_TIMEZONE=America/Managua
+   APP_TIMEZONE=America/Tegucigalpa
    ```
 
 4. **Ejecuta migraciones y seed** desde tu maquina apuntando a la base de produccion:
@@ -515,7 +515,7 @@ npm run build
 }
 ```
 
-`0 14 * * *` (UTC) equivale a las **8:00 a. m. de Managua**. Vercel envia automaticamente el
+`0 14 * * *` (UTC) equivale a las **8:00 a. m. de Tegucigalpa**. Vercel envia automaticamente el
 encabezado con `CRON_SECRET`; sin el, el endpoint responde **401**.
 
 El proceso toma un lock con expiracion en la tabla `cron_locks`, de modo que dos ejecuciones

@@ -7,6 +7,7 @@
 import type {
   AuditEntry,
   DashboardSummary,
+  FinancialReport,
   OrderCard,
   OrderDetail,
   OrderHistoryEntry,
@@ -34,7 +35,7 @@ export const queryKeys = {
   notes: (id: string) => ['order', id, 'notes'] as const,
   audit: (id: string, page: number) => ['order', id, 'audit', page] as const,
   dashboard: ['reports', 'summary'] as const,
-  report: (name: string, filters: ReportFilters) => ['reports', name, filters] as const,
+  report: (name: string, filters: Record<string, unknown>) => ['reports', name, filters] as const,
 };
 
 /* ------------------------------------------------------------------ sesion */
@@ -311,6 +312,21 @@ export function useOrderMutations() {
     onError,
   });
 
+  const updateFinance = useMutation({
+    mutationFn: (input: {
+      id: string;
+      version: number;
+      saleAmountCents: number;
+      productionCostCents: number;
+      paidAt: string | null;
+    }) => {
+      const { id, ...rest } = input;
+      return apiFetch<OrderDetail>(`/orders/${id}/finance`, { method: 'PATCH', json: rest });
+    },
+    onSuccess: refresh,
+    onError,
+  });
+
   const reassignOrder = useMutation({
     mutationFn: (input: { id: string; version: number; assigneeId: string; note?: string }) => {
       const { id, ...rest } = input;
@@ -355,6 +371,7 @@ export function useOrderMutations() {
     createOrder,
     updateOrder,
     transitionOrder,
+    updateFinance,
     reassignOrder,
     archiveOrder,
     addNote,
@@ -372,7 +389,7 @@ export function useDashboard() {
   });
 }
 
-function reportPath(path: string, filters: ReportFilters): string {
+function reportPath(path: string, filters: Record<string, string | undefined>): string {
   return `${path}${buildQuery(filters as Record<string, string | undefined>)}`;
 }
 
@@ -408,6 +425,14 @@ export function useThroughputReport(filters: ReportFilters, enabled = true) {
     queryKey: queryKeys.report('throughput', filters),
     queryFn: () => apiFetch<ThroughputReport>(reportPath('/reports/throughput', filters)),
     enabled,
+    staleTime: 30_000,
+  });
+}
+
+export function useFinancialReport(month: string) {
+  return useQuery({
+    queryKey: queryKeys.report('financial', { month }),
+    queryFn: () => apiFetch<FinancialReport>(reportPath('/reports/financial', { month })),
     staleTime: 30_000,
   });
 }

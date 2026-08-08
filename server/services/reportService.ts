@@ -6,9 +6,10 @@ import {
 import { formatDuration } from '../../shared/lib/sla.js';
 import { env } from '../config/env.js';
 import { CLOSED_STAGE_CODE } from '../../shared/constants/stages.js';
-import type { ReportFilters } from '../../shared/schemas/reports.js';
+import type { FinancialReportInput, ReportFilters } from '../../shared/schemas/reports.js';
 import type {
   DashboardSummary,
+  FinancialReport,
   OrderCard,
   OverdueRow,
   StageTimeRow,
@@ -24,7 +25,9 @@ import {
   averageLeadTimeMinutes,
   countClosedSince,
   countOpenAndClosedOrders,
+  getPendingReceivablesSummary,
   listHistoryForExport,
+  listPaidOrderFinancials,
   stageWithMostSlaMisses,
 } from '../repositories/reportRepository.js';
 import { listStages, toStageDto } from '../repositories/stageRepository.js';
@@ -40,6 +43,56 @@ function rangeFrom(filters: ReportFilters): { from?: Date; to?: Date } {
   return {
     from: filters.from ? startOfCalendarDayUtc(filters.from, tz) : undefined,
     to: filters.to ? endOfCalendarDayUtc(filters.to, tz) : undefined,
+  };
+}
+
+function nextMonth(month: string): string {
+  const [year, monthNumber] = month.split('-').map(Number);
+  return monthNumber === 12
+    ? `${year + 1}-01`
+    : `${year}-${String(monthNumber + 1).padStart(2, '0')}`;
+}
+
+export async function getFinancialReport(input: FinancialReportInput): Promise<FinancialReport> {
+  const tz = env.APP_TIMEZONE;
+  const from = startOfCalendarDayUtc(`${input.month}-01`, tz);
+  const toExclusive = startOfCalendarDayUtc(`${nextMonth(input.month)}-01`, tz);
+  const [paidRows, pending] = await Promise.all([
+    listPaidOrderFinancials(from, toExclusive),
+    getPendingReceivablesSummary(),
+  ]);
+
+  const rows = paidRows.map((row) => ({
+    orderId: row.orderId,
+    orderCode: row.orderCode,
+    customerName: row.customerName,
+    projectName: row.projectName,
+    saleAmountCents: row.saleAmountCents,
+    productionCostCents: row.productionCostCents,
+    profitCents: row.saleAmountCents - row.productionCostCents,
+    paidAt: row.paidAt.toISOString(),
+  }));
+  const grossRevenueCents = rows.reduce((total, row) => total + row.saleAmountCents, 0);
+  const productionCostsCents = rows.reduce(
+    (total, row) => total + row.productionCostCents,
+    0,
+  );
+  const netProfitCents = grossRevenueCents - productionCostsCents;
+
+  return {
+    month: input.month,
+    currency: 'HNL',
+    summary: {
+      grossRevenueCents,
+      productionCostsCents,
+      netProfitCents,
+      marginPercent:
+        grossRevenueCents > 0 ? Math.round((netProfitCents / grossRevenueCents) * 1000) / 10 : null,
+      paidOrders: rows.length,
+      pendingReceivablesCents: pending.totalCents,
+      pendingOrders: pending.orders,
+    },
+    rows,
   };
 }
 

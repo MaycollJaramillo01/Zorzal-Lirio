@@ -6,6 +6,7 @@ import {
   orderFiltersSchema,
   reassignOrderSchema,
   transitionOrderSchema,
+  updateOrderFinanceSchema,
   updateOrderSchema,
 } from '../../shared/schemas/orders.js';
 import { paginationSchema, uuidSchema } from '../../shared/schemas/common.js';
@@ -22,6 +23,7 @@ import {
   restoreOrder,
   transitionOrder,
   updateOrder,
+  updateOrderFinance,
 } from '../services/orderService.js';
 import { addOrderNote, hideOrderNote, listOrderNotes } from '../services/noteService.js';
 import { getOrderAudit } from '../services/auditService.js';
@@ -49,6 +51,13 @@ export const patchOrder: RequestHandler = async (req, res) => {
   const id = parseInput(uuidSchema, req.params.id);
   const input = parseInput(updateOrderSchema, req.body);
   sendOk(res, await updateOrder(auth.user, id, input, clientIp(req)));
+};
+
+export const patchOrderFinance: RequestHandler = async (req, res) => {
+  const auth = getAuth(req);
+  const id = parseInput(uuidSchema, req.params.id);
+  const input = parseInput(updateOrderFinanceSchema, req.body);
+  sendOk(res, await updateOrderFinance(auth.user, id, input, clientIp(req)));
 };
 
 export const postTransition: RequestHandler = async (req, res) => {

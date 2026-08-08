@@ -2,7 +2,7 @@ import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 import { es } from 'date-fns/locale';
 
 /** Zona horaria de presentacion. El almacenamiento siempre es UTC. */
-export const DEFAULT_TIMEZONE = 'America/Managua';
+export const DEFAULT_TIMEZONE = 'America/Tegucigalpa';
 
 /** "2026-08-07": fecha de calendario sin hora ni zona. */
 const CALENDAR_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -11,7 +11,7 @@ const CALENDAR_DATE = /^\d{4}-\d{2}-\d{2}$/;
  * Normaliza cualquier entrada a `Date`.
  *
  * Una fecha de calendario ("2026-08-07") se ancla al mediodia UTC: si se dejara
- * en la medianoche UTC que usa `new Date(...)`, al formatearla en America/Managua
+ * en la medianoche UTC que usa `new Date(...)`, al formatearla en America/Tegucigalpa
  * (UTC-6) se mostraria el dia anterior.
  */
 export function toDate(value: Date | string | number): Date {

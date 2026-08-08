@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { loginSchema, changePasswordSchema } from '../../shared/schemas/auth.js';
-import { createOrderSchema, transitionOrderSchema } from '../../shared/schemas/orders.js';
+import {
+  createOrderSchema,
+  transitionOrderSchema,
+  updateOrderFinanceSchema,
+} from '../../shared/schemas/orders.js';
+import { financialReportSchema } from '../../shared/schemas/reports.js';
 import { updateStageSlaSchema } from '../../shared/schemas/stages.js';
 import { createUserSchema } from '../../shared/schemas/users.js';
 
@@ -85,6 +90,45 @@ describe('transitionOrderSchema', () => {
   it('acepta responsable nulo para cerrar la orden', () => {
     const result = transitionOrderSchema.safeParse({ version: 2, toStageId: uuid, assigneeId: null });
     expect(result.success).toBe(true);
+  });
+});
+
+describe('updateOrderFinanceSchema', () => {
+  it('acepta montos en centavos y una fecha de cobro valida', () => {
+    const result = updateOrderFinanceSchema.safeParse({
+      version: 3,
+      saleAmountCents: 150_000,
+      productionCostCents: 90_000,
+      paidAt: '2026-08-08',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('no permite marcar como cobrada una venta sin monto', () => {
+    const result = updateOrderFinanceSchema.safeParse({
+      version: 3,
+      saleAmountCents: 0,
+      productionCostCents: 0,
+      paidAt: '2026-08-08',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rechaza montos negativos', () => {
+    const result = updateOrderFinanceSchema.safeParse({
+      version: 3,
+      saleAmountCents: 100_000,
+      productionCostCents: -1,
+      paidAt: null,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('financialReportSchema', () => {
+  it('acepta meses validos y rechaza meses inexistentes', () => {
+    expect(financialReportSchema.safeParse({ month: '2026-08' }).success).toBe(true);
+    expect(financialReportSchema.safeParse({ month: '2026-13' }).success).toBe(false);
   });
 });
 

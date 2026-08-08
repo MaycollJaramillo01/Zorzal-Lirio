@@ -4,6 +4,7 @@ import { ToastProvider } from './components/ui';
 import { AppLayout } from './layouts/AppLayout';
 import { ManagerRoute, ProtectedRoute } from './routes/guards';
 import { DashboardPage } from './pages/DashboardPage';
+import { BalancePage } from './pages/BalancePage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
@@ -49,6 +50,14 @@ export function App() {
                   element={
                     <ManagerRoute>
                       <SlaPage />
+                    </ManagerRoute>
+                  }
+                />
+                <Route
+                  path="/balance"
+                  element={
+                    <ManagerRoute>
+                      <BalancePage />
                     </ManagerRoute>
                   }
                 />

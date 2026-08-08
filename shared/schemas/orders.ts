@@ -29,6 +29,29 @@ export const updateOrderSchema = z.object({
   expectedDeliveryDate: calendarDateSchema.nullable().optional(),
 });
 
+const moneyCentsSchema = z.coerce
+  .number()
+  .int('El monto debe tener como máximo dos decimales.')
+  .min(0, 'El monto no puede ser negativo.')
+  .max(2_147_483_647, 'El monto supera el límite permitido.');
+
+export const updateOrderFinanceSchema = z
+  .object({
+    version: z.coerce.number().int().min(1),
+    saleAmountCents: moneyCentsSchema,
+    productionCostCents: moneyCentsSchema,
+    paidAt: calendarDateSchema.nullable(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.paidAt && value.saleAmountCents === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['saleAmountCents'],
+        message: 'Ingresa el monto de venta antes de marcar la orden como cobrada.',
+      });
+    }
+  });
+
 export const transitionOrderSchema = z.object({
   version: z.coerce.number().int().min(1),
   toStageId: uuidSchema,
@@ -72,6 +95,7 @@ export type CreateOrderFormValues = z.input<typeof createOrderSchema>;
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
+export type UpdateOrderFinanceInput = z.infer<typeof updateOrderFinanceSchema>;
 export type TransitionOrderInput = z.infer<typeof transitionOrderSchema>;
 export type ReassignOrderInput = z.infer<typeof reassignOrderSchema>;
 export type ArchiveOrderInput = z.infer<typeof archiveOrderSchema>;

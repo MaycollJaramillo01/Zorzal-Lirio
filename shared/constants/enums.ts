@@ -54,6 +54,7 @@ export type AlertStatus = (typeof ALERT_STATUSES)[number];
 export const AUDIT_ACTIONS = [
   'ORDER_CREATED',
   'ORDER_UPDATED',
+  'ORDER_FINANCE_UPDATED',
   'ORDER_TRANSITIONED',
   'ORDER_REASSIGNED',
   'ORDER_ARCHIVED',
@@ -76,6 +77,7 @@ export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   ORDER_CREATED: 'Orden creada',
   ORDER_UPDATED: 'Orden editada',
+  ORDER_FINANCE_UPDATED: 'Cobro actualizado',
   ORDER_TRANSITIONED: 'Cambio de etapa',
   ORDER_REASSIGNED: 'Cambio de responsable',
   ORDER_ARCHIVED: 'Orden archivada',

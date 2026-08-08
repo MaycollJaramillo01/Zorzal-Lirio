@@ -13,8 +13,8 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'on-first-retry',
-    locale: 'es-NI',
-    timezoneId: 'America/Managua',
+    locale: 'es-HN',
+    timezoneId: 'America/Tegucigalpa',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: process.env.E2E_BASE_URL

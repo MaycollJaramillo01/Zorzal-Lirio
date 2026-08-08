@@ -95,5 +95,13 @@ export function toOrderDetail(row: OrderContextRow, now: Date): OrderDetail {
     createdBy: toCreator(row),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
+    finance: {
+      currency: 'HNL',
+      saleAmountCents: row.saleAmountCents,
+      productionCostCents: row.productionCostCents,
+      profitCents: row.saleAmountCents - row.productionCostCents,
+      status: row.paidAt ? 'PAID' : 'PENDING',
+      paidAt: row.paidAt ? row.paidAt.toISOString() : null,
+    },
   };
 }

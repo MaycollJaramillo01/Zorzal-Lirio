@@ -25,6 +25,7 @@ import {
   getOrder,
   getOrders,
   patchOrder,
+  patchOrderFinance,
   postArchive,
   postHideNote,
   postNote,
@@ -35,6 +36,7 @@ import {
 } from '../controllers/orderController.js';
 import {
   getExport,
+  getFinancial,
   getOverdue,
   getStageTimes,
   getSummary,
@@ -75,6 +77,7 @@ export function buildApiRouter(): Router {
   router.post('/orders', requireManager, postOrder);
   router.get('/orders/:id', getOrder);
   router.patch('/orders/:id', requireManager, patchOrder);
+  router.patch('/orders/:id/finance', requireManager, patchOrderFinance);
   router.post('/orders/:id/transition', postTransition);
   router.post('/orders/:id/reassign', requireManager, postReassign);
   router.post('/orders/:id/archive', requireManager, postArchive);
@@ -92,6 +95,7 @@ export function buildApiRouter(): Router {
   router.get('/reports/overdue', requireManager, getOverdue);
   router.get('/reports/stage-times', requireManager, getStageTimes);
   router.get('/reports/throughput', requireManager, getThroughput);
+  router.get('/reports/financial', requireManager, getFinancial);
   router.get('/reports/export', requireManager, getExport);
 
   return router;

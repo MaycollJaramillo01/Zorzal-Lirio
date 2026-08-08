@@ -26,6 +26,9 @@ export interface OrderContextRow {
   createdAt: Date;
   updatedAt: Date;
   closedAt: Date | null;
+  saleAmountCents: number;
+  productionCostCents: number;
+  paidAt: Date | null;
   stageId: string;
   stageCode: string;
   stageName: string;
@@ -61,6 +64,9 @@ const orderSelection = {
   createdAt: orders.createdAt,
   updatedAt: orders.updatedAt,
   closedAt: orders.closedAt,
+  saleAmountCents: orders.saleAmountCents,
+  productionCostCents: orders.productionCostCents,
+  paidAt: orders.paidAt,
   stageId: stages.id,
   stageCode: stages.code,
   stageName: stages.name,
@@ -246,6 +252,9 @@ export interface OrderUpdateFields {
   currentAssigneeId?: string | null;
   isArchived?: boolean;
   closedAt?: Date | null;
+  saleAmountCents?: number;
+  productionCostCents?: number;
+  paidAt?: Date | null;
 }
 
 /**

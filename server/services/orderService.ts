@@ -12,6 +12,7 @@ import type {
   OrderFilters,
   ReassignOrderInput,
   TransitionOrderInput,
+  UpdateOrderFinanceInput,
   UpdateOrderInput,
 } from '../../shared/schemas/orders.js';
 import type { OrderCard, OrderDetail, OrderHistoryEntry } from '../../shared/types/index.js';
@@ -85,7 +86,8 @@ export async function listOrders(viewer: AuthUser, filters: OrderFilters): Promi
 
 export async function getOrderDetail(viewer: AuthUser, orderId: string): Promise<OrderDetail> {
   const row = await requireVisibleOrder(viewer, orderId);
-  return toOrderDetail(row, new Date());
+  const detail = toOrderDetail(row, new Date());
+  return viewer.role === 'PLANT' ? { ...detail, finance: null } : detail;
 }
 
 export async function getOrderHistory(
@@ -241,6 +243,49 @@ export async function updateOrder(
           Object.keys(changes).map((key) => [key, (current as Record<string, unknown>)[key]]),
         ),
         afterData: changes,
+        ipAddress,
+      },
+      tx,
+    );
+  });
+
+  return getOrderDetail(actor, orderId);
+}
+
+export async function updateOrderFinance(
+  actor: AuthUser,
+  orderId: string,
+  input: UpdateOrderFinanceInput,
+  ipAddress: string | null,
+): Promise<OrderDetail> {
+  const current = await findOrderRow(orderId);
+  if (!current) throw httpErrors.notFound('La orden no existe.');
+  if (current.isArchived) throw httpErrors.orderArchived();
+
+  const paidAt = input.paidAt ? calendarDateToUtc(input.paidAt) : null;
+  const finance = {
+    saleAmountCents: input.saleAmountCents,
+    productionCostCents: input.productionCostCents,
+    paidAt,
+  };
+
+  await getDb().transaction(async (tx) => {
+    const updated = await updateOrderWithVersion(tx, orderId, input.version, finance);
+    if (!updated) throw httpErrors.versionConflict({ currentVersion: current.version });
+
+    await recordAudit(
+      {
+        actorUserId: actor.id,
+        action: 'ORDER_FINANCE_UPDATED',
+        entityType: 'order',
+        entityId: orderId,
+        beforeData: {
+          currency: 'HNL',
+          saleAmountCents: current.saleAmountCents,
+          productionCostCents: current.productionCostCents,
+          paidAt: current.paidAt,
+        },
+        afterData: { currency: 'HNL', ...finance },
         ipAddress,
       },
       tx,

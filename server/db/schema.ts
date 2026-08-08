@@ -106,6 +106,10 @@ export const orders = pgTable(
       .references(() => stages.id),
     currentAssigneeId: uuid('current_assignee_id').references(() => users.id),
     createdByUserId: uuid('created_by_user_id').references(() => users.id),
+    /** Montos en centavos de lempira para evitar errores de punto flotante. */
+    saleAmountCents: integer('sale_amount_cents').notNull().default(0),
+    productionCostCents: integer('production_cost_cents').notNull().default(0),
+    paidAt: timestamp('paid_at', { withTimezone: true, mode: 'date' }),
     version: integer('version').notNull().default(1),
     isArchived: boolean('is_archived').notNull().default(false),
     createdAt,
@@ -121,6 +125,7 @@ export const orders = pgTable(
     index('orders_is_archived_idx').on(table.isArchived),
     index('orders_priority_idx').on(table.priority),
     index('orders_customer_idx').on(table.customerName),
+    index('orders_paid_at_idx').on(table.paidAt),
   ],
 );
 

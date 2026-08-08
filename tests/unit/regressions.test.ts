@@ -10,7 +10,7 @@ import {
 import { toCsv } from '../../server/utils/csv.js';
 import { mergeRecipients } from '../../server/services/alertService.js';
 
-/** BUG-002: una fecha de calendario se mostraba un dia antes en America/Managua. */
+/** BUG-002: una fecha de calendario se mostraba un dia antes en America/Tegucigalpa. */
 describe('fechas de calendario en la zona horaria de la operacion', () => {
   it('muestra el mismo dia que se guardo, no el anterior', () => {
     expect(formatDate('2026-08-07')).toBe('07/08/2026');
@@ -23,7 +23,7 @@ describe('fechas de calendario en la zona horaria de la operacion', () => {
   });
 
   it('sigue respetando los instantes con hora', () => {
-    // 07/08/2026 01:00 UTC son las 19:00 del 06/08 en Managua.
+    // 07/08/2026 01:00 UTC son las 19:00 del 06/08 en Tegucigalpa.
     expect(formatDate('2026-08-07T01:00:00.000Z')).toBe('06/08/2026');
   });
 });
@@ -34,8 +34,8 @@ describe('todayCalendarDate', () => {
     vi.useRealTimers();
   });
 
-  it('usa el calendario de Managua y no el de UTC', () => {
-    // 19:00 del 07/08 en Managua = 01:00 del 08/08 en UTC.
+  it('usa el calendario de Tegucigalpa y no el de UTC', () => {
+    // 19:00 del 07/08 en Tegucigalpa = 01:00 del 08/08 en UTC.
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-08-08T01:00:00.000Z'));
 

@@ -19,6 +19,7 @@ import {
 } from '../components/ui';
 import { TransitionModal } from '../features/kanban/TransitionModal';
 import { OrderEditModal } from '../features/orders/OrderFormModal';
+import { OrderFinanceCard } from '../features/orders/OrderFinanceCard';
 import { ApiError } from '../lib/api';
 import { fmtDate, fmtDateTime, fmtDuration } from '../lib/format';
 import {
@@ -124,6 +125,8 @@ export function OrderDetailPage() {
           ) : null}
         </dl>
       </Card>
+
+      {manager && order.finance ? <OrderFinanceCard order={order} /> : null}
 
       <div className="flex w-fit flex-wrap gap-1 rounded-2xl border border-line bg-surface p-1 shadow-[var(--shadow-tile)]" role="tablist" aria-label="Secciones de la orden">
         <TabButton id="history" current={tab} onSelect={setTab} label="Historial" />

@@ -208,7 +208,7 @@ async function seedDemoOrders(userIds: Map<string, string>, stageIds: Map<StageC
     },
     {
       purchaseOrderNumber: 'OC-2026-1181',
-      customerName: 'Hotel Gran Managua',
+      customerName: 'Hotel Gran Tegucigalpa',
       projectName: 'Uniformes de recepcion',
       quantity: 45,
       priority: 'NORMAL' as const,

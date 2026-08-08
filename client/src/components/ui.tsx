@@ -24,6 +24,7 @@ export type IconName =
   | 'team'
   | 'clock'
   | 'reports'
+  | 'balance'
   | 'profile'
   | 'menu'
   | 'close'
@@ -64,6 +65,13 @@ const iconPaths: Record<IconName, ReactNode> = {
     <>
       <path d="M4 20V10M10 20V4M16 20v-7M22 20V7" />
       <path d="M2 20h22" />
+    </>
+  ),
+  balance: (
+    <>
+      <rect x="3" y="6" width="18" height="13" rx="2" />
+      <path d="M3 10h18M16 14h2" />
+      <path d="M7 3v3M17 3v3" />
     </>
   ),
   profile: (

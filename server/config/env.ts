@@ -19,7 +19,7 @@ const envSchema = z
     DATABASE_URL_UNPOOLED: z.string().trim().min(1).optional(),
 
     APP_URL: z.string().trim().url().default('http://localhost:3000'),
-    APP_TIMEZONE: z.string().trim().min(1).default('America/Managua'),
+    APP_TIMEZONE: z.string().trim().min(1).default('America/Tegucigalpa'),
 
     SESSION_SECRET: z.string().trim().min(1).optional(),
     CRON_SECRET: z.string().trim().min(1).optional(),

@@ -1,5 +1,9 @@
 import type { RequestHandler } from 'express';
-import { reportExportSchema, reportFiltersSchema } from '../../shared/schemas/reports.js';
+import {
+  financialReportSchema,
+  reportExportSchema,
+  reportFiltersSchema,
+} from '../../shared/schemas/reports.js';
 import { parseInput } from '../utils/validate.js';
 import { sendOk } from '../utils/apiResponse.js';
 import { getAuth } from '../middleware/auth.js';
@@ -10,6 +14,7 @@ import { PRIORITY_LABELS, ROLE_LABELS } from '../../shared/constants/enums.js';
 import { env } from '../config/env.js';
 import {
   getDashboard,
+  getFinancialReport,
   getHistoryExportRows,
   getOverdueReport,
   getStageTimesReport,
@@ -40,6 +45,11 @@ export const getStageTimes: RequestHandler = async (req, res) => {
 export const getThroughput: RequestHandler = async (req, res) => {
   const filters = parseInput(reportFiltersSchema, req.query);
   sendOk(res, await getThroughputReport(filters));
+};
+
+export const getFinancial: RequestHandler = async (req, res) => {
+  const input = parseInput(financialReportSchema, req.query);
+  sendOk(res, await getFinancialReport(input));
 };
 
 /** Exportacion CSV que respeta los filtros activos. */

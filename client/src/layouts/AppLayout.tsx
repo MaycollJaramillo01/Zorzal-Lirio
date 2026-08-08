@@ -23,6 +23,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/orders', label: 'Mis etapas', icon: 'orders', plantOnly: true, end: true },
   { to: '/team', label: 'Equipo', icon: 'team', managerOnly: true },
   { to: '/sla', label: 'SLA', icon: 'clock', managerOnly: true },
+  { to: '/balance', label: 'Balance', icon: 'balance', managerOnly: true },
   { to: '/reports', label: 'Reportes', icon: 'reports', managerOnly: true },
 ];
 
@@ -31,6 +32,7 @@ const BREADCRUMBS: Record<string, string> = {
   orders: 'Órdenes',
   team: 'Equipo',
   sla: 'SLA',
+  balance: 'Balance',
   reports: 'Reportes',
   profile: 'Perfil',
 };

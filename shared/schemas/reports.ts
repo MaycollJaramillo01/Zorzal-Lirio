@@ -26,5 +26,12 @@ export const reportExportSchema = reportFiltersSchema.extend({
   report: z.enum(REPORT_EXPORTS),
 });
 
+export const financialReportSchema = z.object({
+  month: z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'El mes debe tener el formato YYYY-MM.'),
+});
+
 export type ReportFilters = z.infer<typeof reportFiltersSchema>;
 export type ReportExportInput = z.infer<typeof reportExportSchema>;
+export type FinancialReportInput = z.infer<typeof financialReportSchema>;

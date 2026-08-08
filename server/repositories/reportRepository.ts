@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, isNotNull, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, isNotNull, isNull, lt, lte, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { getDb, type DbExecutor } from '../db/client.js';
 import { orderStageHistory, orders, stages, users } from '../db/schema.js';
@@ -10,6 +10,58 @@ const exportMover = alias(users, 'export_mover');
 export interface ThroughputFilters {
   from?: Date;
   to?: Date;
+}
+
+export interface PaidOrderFinancialRow {
+  orderId: string;
+  orderCode: string;
+  customerName: string;
+  projectName: string;
+  saleAmountCents: number;
+  productionCostCents: number;
+  paidAt: Date;
+}
+
+export async function listPaidOrderFinancials(
+  from: Date,
+  toExclusive: Date,
+  exec: DbExecutor = getDb(),
+): Promise<PaidOrderFinancialRow[]> {
+  const rows = await exec
+    .select({
+      orderId: orders.id,
+      orderCode: orders.orderCode,
+      customerName: orders.customerName,
+      projectName: orders.projectName,
+      saleAmountCents: orders.saleAmountCents,
+      productionCostCents: orders.productionCostCents,
+      paidAt: orders.paidAt,
+    })
+    .from(orders)
+    .where(and(isNotNull(orders.paidAt), gte(orders.paidAt, from), lt(orders.paidAt, toExclusive)))
+    .orderBy(desc(orders.paidAt), asc(orders.orderCode));
+
+  return rows.map((row) => ({ ...row, paidAt: row.paidAt! }));
+}
+
+export async function getPendingReceivablesSummary(
+  exec: DbExecutor = getDb(),
+): Promise<{ totalCents: number; orders: number }> {
+  const [row] = await exec
+    .select({
+      totalCents: sql<number>`coalesce(sum(${orders.saleAmountCents}), 0)::double precision`,
+      orders: sql<number>`count(*)::int`,
+    })
+    .from(orders)
+    .where(
+      and(
+        isNull(orders.paidAt),
+        gt(orders.saleAmountCents, 0),
+        eq(orders.isArchived, false),
+      ),
+    );
+
+  return { totalCents: row?.totalCents ?? 0, orders: row?.orders ?? 0 };
 }
 
 /** Ordenes cerradas agrupadas por mes (YYYY-MM), calculado en SQL. */

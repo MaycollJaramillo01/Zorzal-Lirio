@@ -103,11 +103,22 @@ export interface OrderCard {
   closedAt: string | null;
 }
 
+export interface OrderFinance {
+  currency: 'HNL';
+  saleAmountCents: number;
+  productionCostCents: number;
+  profitCents: number;
+  status: 'PENDING' | 'PAID';
+  paidAt: string | null;
+}
+
 export interface OrderDetail extends OrderCard {
   description: string | null;
   createdBy: UserRef | null;
   createdAt: string;
   updatedAt: string;
+  /** Solo se entrega a dueños y administradores. */
+  finance: OrderFinance | null;
 }
 
 export interface OrderHistoryEntry {
@@ -224,6 +235,32 @@ export interface ThroughputReport {
   closedByPeriod: ThroughputRow[];
   slowestStage: { stage: StageRef; averageMinutes: number } | null;
   mostOverdueStage: { stage: StageRef; overdueCount: number } | null;
+}
+
+export interface FinancialReportRow {
+  orderId: string;
+  orderCode: string;
+  customerName: string;
+  projectName: string;
+  saleAmountCents: number;
+  productionCostCents: number;
+  profitCents: number;
+  paidAt: string;
+}
+
+export interface FinancialReport {
+  month: string;
+  currency: 'HNL';
+  summary: {
+    grossRevenueCents: number;
+    productionCostsCents: number;
+    netProfitCents: number;
+    marginPercent: number | null;
+    paidOrders: number;
+    pendingReceivablesCents: number;
+    pendingOrders: number;
+  };
+  rows: FinancialReportRow[];
 }
 
 export interface SlaCheckSummary {
