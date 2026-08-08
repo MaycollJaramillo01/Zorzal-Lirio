@@ -3,26 +3,27 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { loginSchema, type LoginInput } from '@shared/schemas/auth';
-import { Button, Field, Input } from '../components/ui';
+import { Button, Field, Icon, Input, type IconName } from '../components/ui';
 import { ApiError } from '../lib/api';
+import { cn } from '../lib/format';
 import { useLogin, useSession } from '../services/queries';
 
 interface FeatureTileProps {
-  glyph: string;
+  icon: IconName;
   title: string;
   detail: string;
+  className?: string;
 }
 
-/** Celda bento en miniatura: describe una capacidad real del sistema, no una cifra inventada. */
-function FeatureTile({ glyph, title, detail }: FeatureTileProps) {
+function FeatureTile({ icon, title, detail, className }: FeatureTileProps) {
   return (
-    <div className="rounded-xl border border-white/15 bg-white/5 p-3">
-      <span aria-hidden="true" className="text-sm text-gold-500">
-        {glyph}
+    <article className={cn('group rounded-[1.35rem] border border-white/12 bg-white/[0.06] p-4 backdrop-blur-sm', className)}>
+      <span className="flex size-9 items-center justify-center rounded-xl bg-gold-500 text-brand-900 transition-transform group-hover:-translate-y-0.5">
+        <Icon name={icon} />
       </span>
-      <p className="mt-2 text-xs font-semibold text-white">{title}</p>
-      <p className="mt-0.5 text-[11px] leading-snug text-white/60">{detail}</p>
-    </div>
+      <h2 className="mt-5 text-sm font-semibold text-white">{title}</h2>
+      <p className="mt-1 max-w-48 text-xs leading-relaxed text-white/58">{detail}</p>
+    </article>
   );
 }
 
@@ -53,65 +54,54 @@ export function LoginPage() {
   });
 
   const serverError =
-    login.error instanceof ApiError ? login.error.message : login.error ? 'No se pudo iniciar sesion.' : null;
+    login.error instanceof ApiError ? login.error.message : login.error ? 'No se pudo iniciar sesión.' : null;
 
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
-      {/* Panel de marca: solo en escritorio, describe capacidades reales del sistema. */}
-      <div className="relative hidden overflow-hidden bg-brand-900 px-12 py-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.05]"
-          style={{
-            backgroundImage:
-              'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-          }}
-        />
+    <main className="grid min-h-screen grid-cols-1 gap-3 bg-background p-3 lg:grid-cols-[1.12fr_0.88fr] lg:p-4">
+      <section className="zl-grid-pattern relative hidden min-h-[calc(100vh-2rem)] overflow-hidden rounded-[2rem] bg-brand-900 p-8 text-white lg:flex lg:flex-col lg:justify-between xl:p-12">
+        <span aria-hidden="true" className="absolute -top-32 -right-24 size-96 rounded-full border border-white/10" />
+        <span aria-hidden="true" className="absolute -top-16 -right-8 size-64 rounded-full border border-gold-500/25" />
 
         <div className="relative">
-          <div className="inline-flex rounded-2xl bg-white px-4 py-3">
+          <div className="inline-flex rounded-2xl bg-white px-4 py-3 shadow-[var(--shadow-float)]">
             <img src="/logo.webp" alt="Zorzal Lirio OS" className="h-8 w-auto" />
           </div>
-
-          <h1 className="mt-10 max-w-md text-3xl leading-tight font-bold text-balance">
-            Control de produccion de uniformes, de principio a fin.
+          <p className="mt-10 text-xs font-bold tracking-[0.16em] text-gold-500 uppercase">Centro operativo</p>
+          <h1 className="mt-3 max-w-2xl text-5xl leading-[0.98] font-semibold tracking-[-0.055em] xl:text-6xl">
+            Cada orden, etapa y responsable en un solo lugar.
           </h1>
-          <p className="mt-3 max-w-sm text-sm text-white/70">
-            Un tablero, un responsable por etapa y un historial que nunca se pierde.
+          <p className="mt-5 max-w-lg text-base leading-relaxed text-white/65">
+            Zorzal Lirio OS coordina la producción de uniformes con trazabilidad, alertas y decisiones claras.
           </p>
         </div>
 
-        <div className="relative grid grid-cols-2 gap-3">
-          <FeatureTile glyph="◆" title="Tablero Kanban" detail="Etapas con responsable asignado" />
-          <FeatureTile glyph="▲" title="SLA automatico" detail="Alertas antes de vencer, sin duplicados" />
-          <FeatureTile glyph="●" title="Historial completo" detail="Cada movimiento queda registrado" />
-          <FeatureTile glyph="■" title="Reportes" detail="Carga por persona y tiempos por etapa" />
+        <div className="bento-grid relative grid grid-cols-2 gap-3 xl:grid-cols-4">
+          <FeatureTile icon="orders" title="Tablero Kanban" detail="Órdenes visibles por etapa y responsable." className="xl:col-span-2" />
+          <FeatureTile icon="clock" title="SLA automático" detail="Prioridades antes de que un pedido venza." />
+          <FeatureTile icon="activity" title="Historial" detail="Cada movimiento queda registrado." />
+          <FeatureTile icon="reports" title="Reportes" detail="Carga, tiempos y cuellos de botella." className="col-span-2 xl:col-span-4" />
         </div>
-      </div>
+      </section>
 
-      {/* Panel de formulario. */}
-      <div className="flex items-center justify-center bg-background px-4 py-10">
-        <div className="w-full max-w-sm">
-          <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
-            <div className="rounded-2xl border-2 border-brand-900 bg-white px-6 py-4">
-              <img src="/logo.webp" alt="Zorzal Lirio OS" className="h-8 w-auto" />
+      <section className="paper-grid flex min-h-[calc(100vh-1.5rem)] items-center justify-center rounded-[2rem] border border-line bg-surface/75 px-5 py-12 lg:min-h-[calc(100vh-2rem)] xl:px-12">
+        <div className="w-full max-w-md">
+          <div className="mb-10 lg:hidden">
+            <div className="inline-flex rounded-2xl border border-line bg-white px-4 py-3 shadow-[var(--shadow-tile)]">
+              <img src="/logo.webp" alt="Zorzal Lirio OS" className="h-7 w-auto" />
             </div>
-            <p className="text-sm font-medium text-muted">Control de produccion de uniformes</p>
           </div>
 
-          <form
-            onSubmit={onSubmit}
-            noValidate
-            className="flex flex-col gap-5 rounded-2xl border border-line bg-surface p-6 lg:border-0 lg:bg-transparent lg:p-0"
-          >
-            <div>
-              <h2 className="text-xl font-semibold text-ink">Iniciar sesion</h2>
-              <p className="mt-1 text-sm text-muted">Entra con tu correo y contrasena.</p>
-            </div>
+          <div className="mb-8">
+            <p className="text-xs font-bold tracking-[0.14em] text-brand-700 uppercase">Acceso interno</p>
+            <h2 className="mt-2 text-4xl leading-none font-semibold text-ink sm:text-5xl">Bienvenido de vuelta</h2>
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">
+              Ingresa tus credenciales para continuar con la jornada de producción.
+            </p>
+          </div>
 
+          <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5 rounded-[1.5rem] border border-line bg-surface p-5 shadow-[var(--shadow-tile)] sm:p-7">
             {serverError ? (
-              <p role="alert" className="rounded border border-danger/40 bg-danger-soft px-3 py-2 text-sm text-danger">
+              <p role="alert" className="rounded-xl border border-danger/35 bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
                 {serverError}
               </p>
             ) : null}
@@ -122,43 +112,47 @@ export function LoginPage() {
                 type="email"
                 autoComplete="username"
                 autoFocus
+                placeholder="nombre@zorzallirio.com"
                 aria-invalid={Boolean(errors.email)}
                 {...register('email')}
               />
             </Field>
 
-            <Field label="Contrasena" htmlFor="password" required error={errors.password?.message}>
+            <Field label="Contraseña" htmlFor="password" required error={errors.password?.message}>
               <div className="relative">
                 <Input
                   id="password"
                   type={passwordVisible ? 'text' : 'password'}
                   autoComplete="current-password"
+                  className="pr-16"
                   aria-invalid={Boolean(errors.password)}
-                  className="pr-14"
                   {...register('password')}
                 />
                 <button
                   type="button"
                   onClick={() => setPasswordVisible((visible) => !visible)}
-                  className="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-muted hover:text-ink"
-                  aria-label={passwordVisible ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                  className="absolute inset-y-0 right-1 px-3 text-xs font-semibold text-muted hover:text-ink"
+                  aria-label={passwordVisible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {passwordVisible ? 'Ocultar' : 'Ver'}
                 </button>
               </div>
             </Field>
 
-            <Button type="submit" className="mt-1 h-11" disabled={isSubmitting || login.isPending}>
-              {login.isPending ? 'Entrando...' : 'Entrar'}
+            <Button type="submit" className="mt-1 h-11 w-full" disabled={isSubmitting || login.isPending}>
+              {login.isPending ? 'Ingresando…' : 'Entrar al sistema'}
+              {!login.isPending ? <Icon name="arrow" /> : null}
             </Button>
 
-            <p className="text-center text-xs text-muted">
-              ¿No tienes acceso? Pide a un administrador que te cree una cuenta en{' '}
-              <span className="font-medium text-ink">Equipo</span>.
-            </p>
+            <div className="flex items-start gap-2.5 border-t border-line pt-4 text-xs leading-relaxed text-muted">
+              <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success">
+                <Icon name="check" className="size-3" />
+              </span>
+              El acceso está reservado al equipo. Solicita una cuenta al administrador de producción.
+            </div>
           </form>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

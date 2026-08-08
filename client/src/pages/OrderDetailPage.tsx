@@ -125,7 +125,7 @@ export function OrderDetailPage() {
         </dl>
       </Card>
 
-      <div className="flex flex-wrap gap-1 border-b border-line" role="tablist" aria-label="Secciones de la orden">
+      <div className="flex w-fit flex-wrap gap-1 rounded-2xl border border-line bg-surface p-1 shadow-[var(--shadow-tile)]" role="tablist" aria-label="Secciones de la orden">
         <TabButton id="history" current={tab} onSelect={setTab} label="Historial" />
         <TabButton id="notes" current={tab} onSelect={setTab} label="Notas" />
         {manager ? <TabButton id="audit" current={tab} onSelect={setTab} label="Auditoria" /> : null}
@@ -188,8 +188,8 @@ function TabButton({
       onClick={() => onSelect(id)}
       className={
         active
-          ? 'border-b-2 border-brand-700 px-3 py-2 text-sm font-semibold text-brand-900'
-          : 'border-b-2 border-transparent px-3 py-2 text-sm text-muted hover:text-ink'
+          ? 'rounded-xl bg-brand-900 px-4 py-2 text-sm font-semibold text-white'
+          : 'rounded-xl px-4 py-2 text-sm font-medium text-muted hover:bg-surface-muted hover:text-ink'
       }
     >
       {label}

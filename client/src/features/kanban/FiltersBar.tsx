@@ -17,7 +17,7 @@ export function FiltersBar({ filters, stages, users, activeCount, onChange, onRe
   return (
     <section
       aria-label="Filtros del tablero"
-      className="grid gap-3 rounded-lg border border-line bg-surface p-3 sm:grid-cols-2 xl:grid-cols-4"
+      className="grid gap-4 rounded-[1.5rem] border border-line bg-surface p-5 shadow-[var(--shadow-tile)] sm:grid-cols-2 xl:grid-cols-4"
     >
       <Field label="Buscar" htmlFor="filtro-busqueda" hint="Codigo, orden de compra, cliente o proyecto">
         <Input

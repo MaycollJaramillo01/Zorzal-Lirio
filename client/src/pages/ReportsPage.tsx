@@ -72,7 +72,7 @@ export function ReportsPage() {
 
       <section
         aria-label="Filtros de reportes"
-        className="grid gap-3 rounded-lg border border-line bg-surface p-3 sm:grid-cols-2 xl:grid-cols-6"
+        className="grid gap-4 rounded-[1.5rem] border border-line bg-surface p-5 shadow-[var(--shadow-tile)] sm:grid-cols-2 xl:grid-cols-6"
       >
         <Field label="Desde" htmlFor="rep-desde">
           <Input id="rep-desde" type="date" value={filters.from ?? ''} onChange={(e) => update({ from: e.target.value })} />

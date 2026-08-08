@@ -41,26 +41,26 @@ function Column({
       ref={setNodeRef}
       aria-label={`Etapa ${stage.name}`}
       className={cn(
-        'flex w-72 shrink-0 flex-col rounded-lg border bg-surface-muted',
-        isOver ? 'border-brand-500 bg-brand-soft' : 'border-line',
+        'flex w-76 shrink-0 flex-col overflow-hidden rounded-[1.5rem] border bg-surface-muted/80 shadow-[var(--shadow-tile)]',
+        isOver ? 'border-brand-500 bg-brand-soft shadow-[var(--shadow-float)]' : 'border-line',
       )}
     >
-      <header className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
+      <header className="flex items-center justify-between gap-2 border-b border-line px-4 py-3.5">
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-semibold text-ink">{stage.name}</h3>
+          <h3 className="truncate text-base font-semibold text-ink">{stage.name}</h3>
           <p className="text-[11px] text-muted">
             {orders.length} {orders.length === 1 ? 'orden' : 'ordenes'}
             {overdue > 0 ? ` · ${overdue} atrasadas` : ''}
           </p>
         </div>
-        <span className="rounded-full bg-surface px-2 py-0.5 text-xs font-semibold text-ink tabular-nums">
+        <span className="flex size-8 items-center justify-center rounded-xl bg-surface text-xs font-bold text-ink shadow-sm tabular-nums">
           {orders.length}
         </span>
       </header>
 
-      <div className="zl-scroll flex max-h-[calc(100vh-19rem)] flex-col gap-2 overflow-y-auto p-2">
+      <div className="zl-scroll flex max-h-[calc(100vh-19rem)] flex-col gap-2.5 overflow-y-auto p-2.5">
         {orders.length === 0 ? (
-          <p className="rounded border border-dashed border-line px-3 py-6 text-center text-xs text-muted">
+          <p className="rounded-2xl border border-dashed border-brand-300 bg-surface/55 px-3 py-8 text-center text-xs text-muted">
             Sin ordenes en esta etapa
           </p>
         ) : (
@@ -116,7 +116,7 @@ export function KanbanBoard({ stages, orders, canDrag, onRequestMove }: KanbanBo
       {/* Escritorio y tablet: columnas con desplazamiento horizontal contenido. */}
       <div className="hidden md:block">
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="zl-scroll flex w-full gap-3 overflow-x-auto pb-2">
+          <div className="zl-scroll flex w-full gap-4 overflow-x-auto pb-3">
             {stages.map((stage) => (
               <Column
                 key={stage.id}
@@ -129,7 +129,7 @@ export function KanbanBoard({ stages, orders, canDrag, onRequestMove }: KanbanBo
           </div>
           <DragOverlay>
             {activeOrder ? (
-              <div className="w-72 rotate-1">
+              <div className="w-76 rotate-1">
                 <OrderCardItem order={activeOrder} draggable={false} onMove={() => undefined} />
               </div>
             ) : null}
@@ -139,7 +139,7 @@ export function KanbanBoard({ stages, orders, canDrag, onRequestMove }: KanbanBo
 
       {/* Movil: selector de etapa y lista vertical. */}
       <div className="flex flex-col gap-3 md:hidden">
-        <label htmlFor="etapa-movil" className="text-xs font-semibold tracking-wide text-muted uppercase">
+        <label htmlFor="etapa-movil" className="text-xs font-semibold text-ink">
           Etapa
         </label>
         <Select
@@ -155,7 +155,7 @@ export function KanbanBoard({ stages, orders, canDrag, onRequestMove }: KanbanBo
         </Select>
 
         {mobileOrders.length === 0 ? (
-          <p className="rounded border border-dashed border-line px-3 py-6 text-center text-xs text-muted">
+          <p className="rounded-2xl border border-dashed border-brand-300 bg-surface/55 px-3 py-8 text-center text-xs text-muted">
             Sin ordenes en esta etapa
           </p>
         ) : (

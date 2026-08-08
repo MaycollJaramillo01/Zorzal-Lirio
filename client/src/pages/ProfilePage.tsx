@@ -37,11 +37,11 @@ export function ProfilePage() {
   });
 
   return (
-    <div className="flex min-w-0 max-w-3xl flex-col gap-4">
+    <div className="flex min-w-0 max-w-4xl flex-col gap-5">
       <PageHeader title="Perfil" description="Datos de tu cuenta y cambio de contrasena." />
 
       {session.mustChangePassword ? (
-        <p role="alert" className="rounded border border-warning/50 bg-warning-soft px-3 py-2 text-sm text-warning">
+        <p role="alert" className="rounded-2xl border border-warning/40 bg-warning-soft px-5 py-4 text-sm font-medium text-warning">
           Debes cambiar tu contrasena inicial antes de usar el sistema.
         </p>
       ) : null}

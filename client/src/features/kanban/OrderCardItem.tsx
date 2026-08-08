@@ -22,7 +22,7 @@ export function OrderCardItem({ order, draggable, onMove }: OrderCardItemProps) 
     <article
       ref={setNodeRef}
       className={cn(
-        'flex flex-col gap-2 rounded-md border border-line bg-surface p-2.5 shadow-[0_1px_2px_rgba(23,33,29,0.05)]',
+        'relative flex flex-col gap-3 rounded-2xl border border-line/80 bg-surface p-3.5 shadow-[0_8px_26px_-24px_rgba(65,45,31,0.7)] hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[var(--shadow-tile)]',
         isDragging && 'opacity-40',
         order.isArchived && 'border-dashed opacity-70',
       )}
@@ -31,7 +31,7 @@ export function OrderCardItem({ order, draggable, onMove }: OrderCardItemProps) 
         <div className="min-w-0">
           <Link
             to={`/orders/${order.id}`}
-            className="block truncate text-sm font-semibold text-brand-900 hover:underline"
+            className="block truncate font-display text-sm font-semibold text-brand-900 hover:text-brand-700"
           >
             {order.orderCode}
           </Link>
@@ -67,7 +67,7 @@ export function OrderCardItem({ order, draggable, onMove }: OrderCardItemProps) 
         {draggable ? (
           <button
             type="button"
-            className="cursor-grab rounded border border-line px-1.5 py-0.5 text-[11px] text-muted"
+            className="cursor-grab rounded-lg border border-line bg-background/70 px-2 py-1 text-[11px] font-medium text-muted hover:border-brand-300 hover:text-ink"
             aria-label={`Arrastrar la orden ${order.orderCode}`}
             {...attributes}
             {...listeners}
