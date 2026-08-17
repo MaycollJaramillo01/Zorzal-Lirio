@@ -270,13 +270,15 @@ Respuesta esperada:
 
 ## Usuarios iniciales
 
-| Rol | Nombre | Correo | Contrasena | Enfoque |
-| --- | --- | --- | --- | --- |
-| OWNER | Dueno Zorzal Lirio | `owner@zorzallirio.local` | `owner123` | Todas |
-| ADMIN | Administrador | `admin@zorzallirio.local` | `ZL-Admin!HN_2026#K7v9@Q2x` | Todas |
-| PLANT | Responsable de compras | `compras@zorzallirio.local` | `planta123` | Compra de tela |
-| PLANT | Responsable de taller | `taller@zorzallirio.local` | `planta123` | En taller y Bordado |
-| PLANT | Responsable de envios | `envio@zorzallirio.local` | `planta123` | Envio y Cobro |
+Las claves de estas cuentas **no se publican**. Se definen al sembrar (`.env` / variables de Vercel) y se cambian en `/profile`. Si alguna vez estuvieron en Git, hay que rotarlas: el seed no pisa usuarios que ya existen.
+
+| Rol | Nombre | Correo | Enfoque |
+| --- | --- | --- | --- |
+| OWNER | Dueno Zorzal Lirio | `owner@zorzallirio.local` | Todas |
+| ADMIN | Administrador | `admin@zorzallirio.local` | Todas |
+| PLANT | Responsable de compras | `compras@zorzallirio.local` | Compra de tela |
+| PLANT | Responsable de taller | `taller@zorzallirio.local` | En taller y Bordado |
+| PLANT | Responsable de envios | `envio@zorzallirio.local` | Envio y Cobro |
 
 En **produccion** estas cuentas nacen con `must_change_password = true`: el usuario solo puede
 entrar a `/profile` hasta cambiar su contrasena. En desarrollo el valor es `false`.
@@ -503,7 +505,8 @@ npm run build
    ```
 
 7. **Prueba de login:** entra a `https://tu-app.vercel.app/login` con
-   `owner@zorzallirio.local` / `owner123` y cambia la contrasena cuando se te solicite.
+   `owner@zorzallirio.local` y la clave que definiste al sembrar. Cambiala en `/profile`.
+   Si esa clave alguna vez estuvo en Git, asume que ya la usaron y rotarla.
 
 8. **Prueba manual del cron:**
 
